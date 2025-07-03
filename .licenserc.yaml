@@ -1,0 +1,26 @@
+header:
+  license:
+    # The path of the license file
+    path: .header-template.txt
+    # The copyright owner
+    copyright-owner: ClrSlate Tech labs Private Limited
+
+  # The paths to check
+  paths:
+    - '**/*.cs'
+    - '**/*.md'
+
+  # The paths to ignore
+  paths-ignore:
+    - 'LICENSE'
+    - 'NOTICE'
+    - 'README.md'
+    - 'CONTRIBUTING.md'
+    - 'CODE_OF_CONDUCT.md'
+    - 'docs/'
+    - '.github/'
+    - 'artifacts/'
+    - 'bin/'
+    - 'obj/'
+    - 'node_modules/'
+    - 'TestResults/'
