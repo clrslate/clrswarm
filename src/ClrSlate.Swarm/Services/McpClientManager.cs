@@ -42,19 +42,23 @@ internal class McpClientManager : IMcpClientManager, IAsyncDisposable
                         new StdioClientTransport(transportOptions),
                         defaultOptions);
                 }
-                else if (serverConfig.IsSseTransport) {
+                else if (serverConfig.IsSseOrHttpTransport) {
                     var transportOptions = new SseClientTransportOptions {
-                        Endpoint = new Uri(serverConfig.Endpoint!),
-                        Name = serverConfig.Name ?? serverName
+                        Endpoint = new Uri(serverConfig.Url!),
+                        Name = serverConfig.Name ?? serverName,
+                        AdditionalHeaders = serverConfig.Headers ?? []
                     };
+                    transportOptions.TransportMode = !string.IsNullOrWhiteSpace(serverConfig.Type)
+                        ? serverConfig.Type == "sse" ? HttpTransportMode.Sse : HttpTransportMode.StreamableHttp
+                        : HttpTransportMode.AutoDetect;
 
                     client = await McpClientFactory.CreateAsync(
-                        new SseClientTransport(transportOptions),
-                        defaultOptions);
+                            new SseClientTransport(transportOptions),
+                            defaultOptions);
                 }
                 else {
                     _logger.LogWarning("Unsupported transport type '{Transport}' for server '{ServerName}'",
-                        serverConfig.Transport, serverName);
+                        serverConfig.Type, serverName);
                     continue;
                 }
 
