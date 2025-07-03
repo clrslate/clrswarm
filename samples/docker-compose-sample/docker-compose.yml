@@ -1,0 +1,14 @@
+services:
+  swarm:
+    build:
+      context: ../../
+      dockerfile: src/ClrSlate.Swarm/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      McpServers__memory__command: "npx"
+      McpServers__memory__args__0: "-y"
+      McpServers__memory__args__1: "@modelcontextprotocol/server-memory"
+      McpServers__memory__type: "stdio"
+    entrypoint: ["/bin/sh", "-c", "npm install @modelcontextprotocol/server-memory && dotnet ClrSlate.Swarm.dll"]

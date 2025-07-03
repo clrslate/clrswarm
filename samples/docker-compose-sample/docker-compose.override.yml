@@ -1,0 +1,7 @@
+services:
+  swarm:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      McpServers__my_server__command: "uvx"
+      McpServers__my_server__args__0: "mcp-server-fetch"
+      McpServers__my_server__type: "stdio"
