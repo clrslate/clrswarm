@@ -1,7 +1,6 @@
 header:
   license:
-    # The path of the license file
-    path: .header-template.txt
+    spdx-id: Apache-2.0
     # The copyright owner
     copyright-owner: ClrSlate Tech labs Private Limited
 
@@ -20,7 +19,7 @@ header:
     - 'docs/'
     - '.github/'
     - 'artifacts/'
-    - 'bin/'
-    - 'obj/'
+    - '**/bin/**'
+    - '**/obj/**'
     - 'node_modules/'
     - 'TestResults/'

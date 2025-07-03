@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: license-eye
+        name: License Eye
+        entry: docker run --rm -v .:/github/workspace apache/skywalking-eyes:0.4.0 header fix
+        language: system
+        pass_filenames: false
+        files: \.(cs|md)$
+        stages: [pre-commit]
