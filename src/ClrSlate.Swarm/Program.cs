@@ -35,6 +35,9 @@ builder.Services.Configure<McpServersConfiguration>(
 // Register the MCP client manager
 builder.Services.AddSingleton<IMcpClientManager, McpClientManager>();
 
+// Add health checks
+builder.Services.AddHealthChecks();
+
 var mcpServerBuilder = builder.Services.AddMcpServer()
     .WithHttpTransport(options => {
         options.Stateless = true;
@@ -76,6 +79,10 @@ mcpServerBuilder.WithCallToolHandler(async (context, cancellationToken) => {
 });
 
 var app = builder.Build();
+
+// Map liveness and readiness endpoints
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/ready");
 
 // Display available tools for debugging
 var tools = await clientManager.GetAllToolsAsync();
