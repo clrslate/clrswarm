@@ -20,8 +20,13 @@ using ModelContextProtocol.Protocol;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Data Protection to persist keys to a stable directory
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine("data","dataprotection-keys")));
 
 // Configure MCP servers from appsettings
 builder.Services.Configure<McpServersConfiguration>(
