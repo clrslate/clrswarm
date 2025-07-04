@@ -1,0 +1,83 @@
+# Sample values for development environment
+# Optimized for local development and testing
+
+replicaCount: 1
+
+image:
+  repository: clrslatepublic.azurecr.io/containers/clrswarm
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080
+
+ingress:
+  enabled: false
+
+# Development MCP Servers - with debug logging
+mcpServers:
+  memory:
+    type: "stdio"
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-memory"
+    env:
+      NODE_ENV: "development"
+      DEBUG: "*"
+  
+  # Local development filesystem server
+  filesystem:
+    type: "stdio"
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "/tmp"
+    env:
+      NODE_ENV: "development"
+      DEBUG: "*"
+
+app:
+  environment: "Development"
+  logLevel: "Debug"
+
+# Minimal resources for development
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Faster probes for development
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 2
+  periodSeconds: 3
+
+# Additional volumes for development
+volumes:
+  - name: dev-cache
+    emptyDir: {}
+
+volumeMounts:
+  - name: dev-cache
+    mountPath: /app/cache
+
+# Development annotations
+podAnnotations:
+  description: "Development instance of ClrSlate Swarm"
+  environment: "dev"

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: clrslate-swarm
+description: A Helm chart for ClrSlate Swarm - MCP Gateway
+type: application
+version: 0.1.0
+appVersion: "latest"
+keywords:
+  - mcp
+  - model-context-protocol
+  - gateway
+home: https://github.com/clrslate/clrswarm
+sources:
+  - https://github.com/clrslate/clrswarm
+maintainers:
+  - name: ClrSlate Team
+    url: https://github.com/clrslate

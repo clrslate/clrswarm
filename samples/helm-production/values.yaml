@@ -1,0 +1,87 @@
+# Sample values for multiple MCP servers configuration
+# Demonstrates configuring multiple MCP servers with different types
+
+replicaCount: 2
+
+image:
+  repository: clrslatepublic.azurecr.io/containers/clrswarm
+  tag: "latest"
+
+service:
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: clrslate-swarm.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: clrslate-swarm-tls
+      hosts:
+        - clrslate-swarm.example.com
+
+# Multiple MCP Servers Configuration
+mcpServers:
+  memory:
+    type: "stdio"
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-memory"
+    env:
+      NODE_ENV: "production"
+  
+  filesystem:
+    type: "stdio"
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "/allowed/path"
+    env:
+      NODE_ENV: "production"
+  
+  # Example HTTP-based MCP server
+  external-api:
+    type: "http"
+    url: "https://api.example.com/mcp"
+    headers:
+      Authorization: "Bearer token-here"
+      Content-Type: "application/json"
+    name: "External API Server"
+
+app:
+  environment: "Production"
+  logLevel: "Warning"
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+    - ALL
+
+podSecurityContext:
+  fsGroup: 2000

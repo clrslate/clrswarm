@@ -1,0 +1,51 @@
+# Sample values for basic memory server setup
+# Similar to the docker-compose sample but for Kubernetes
+
+replicaCount: 1
+
+image:
+  repository: clrslatepublic.azurecr.io/containers/clrswarm
+  pullPolicy: Always
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+
+# MCP Servers Configuration
+mcpServers:
+  memory:
+    type: "stdio"
+    command: "uvx"
+    args:
+      - "mcp-server-fetch"
+
+app:
+  environment: "Development"
+  logLevel: "Information"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Enable liveness and readiness probes
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5

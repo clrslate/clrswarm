@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "clrslate-swarm.configMapName" . }}
+  labels:
+    {{- include "clrslate-swarm.labels" . | nindent 4 }}
+data:
+  appsettings.{{ .Values.app.environment }}.json: |
+    {
+      "Logging": {
+        "LogLevel": {
+          "Default": "{{ .Values.app.logLevel }}",
+          "Microsoft.AspNetCore": "Warning"
+        }
+      },
+      "AllowedHosts": "{{ .Values.app.allowedHosts }}",
+      "McpServers": {{- .Values.mcpServers | toJson | nindent 8 }}
+    }
