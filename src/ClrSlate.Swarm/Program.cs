@@ -87,19 +87,6 @@ var app = builder.Build();
 app.MapHealthChecks("/health");
 app.MapHealthChecks("/ready");
 
-var clientManager = app.Services.GetRequiredService<IMcpClientManager>();
-await clientManager.InitializeAsync();
-
-// Display available tools for debugging
-var tools = await clientManager.GetAllToolsAsync();
-foreach (var tool in tools) {
-    Console.WriteLine($"""
-        {tool.Name}:
-            title: {tool.Title}
-            description: {tool.Description}
-        """);
-}
-
 app.MapMcp();
 
 await app.RunAsync();

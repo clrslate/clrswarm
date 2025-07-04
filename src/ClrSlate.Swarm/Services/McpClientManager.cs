@@ -15,6 +15,7 @@
  */
 
 using ClrSlate.Swarm.Abstractions;
+using ClrSlate.Swarm.Extensions;
 using Microsoft.Extensions.Options;
 using ModelContextProtocol.Protocol;
 
@@ -25,74 +26,86 @@ internal class McpClientManager : IMcpClientManager, IAsyncDisposable
     private readonly McpServersConfiguration _config;
     private readonly ILogger<McpClientManager> _logger;
     private readonly IMcpToolServiceFactory _toolServiceFactory;
-    private readonly Dictionary<string, IMcpToolService> _toolServices = new();
-    private readonly Dictionary<string, string> _toolToServerMap = new();
-    private bool _initialized = false;
+    private readonly LazyAsync<Dictionary<string, IMcpToolService>> _toolServices;
+    private readonly LazyAsync<Dictionary<string, string>> _toolToServerMap;
 
     public McpClientManager(IOptions<McpServersConfiguration> config, ILogger<McpClientManager> logger, IMcpToolServiceFactory toolServiceFactory)
     {
         _config = config.Value;
         _logger = logger;
         _toolServiceFactory = toolServiceFactory;
+        _toolServices = new LazyAsync<Dictionary<string, IMcpToolService>>(CreateToolServicesAsync);
+        _toolToServerMap = new LazyAsync<Dictionary<string, string>>(CreateToolToServerMapAsync);
     }
 
-    public async Task InitializeAsync()
+    private Task<Dictionary<string, IMcpToolService>> CreateToolServicesAsync()
     {
-        if (_initialized) return;
-
-        foreach (var (serverName, serverConfig) in _config.McpServers)
-        {
-            try
-            {
+        var toolServices = new Dictionary<string, IMcpToolService>();
+        foreach (var (serverName, serverConfig) in _config.McpServers) {
+            try {
                 var toolService = _toolServiceFactory.Create(serverConfig);
-                _toolServices[serverName] = toolService;
-
-                var tools = await toolService.ListToolsAsync();
-                foreach (var tool in tools)
-                {
-                    _toolToServerMap[tool.Name] = serverName;
-                }
-
-                _logger.LogInformation("Successfully initialized MCP server '{ServerName}' with {ToolCount} tools", serverName, tools.Count);
+                toolServices[serverName] = toolService;
+                _logger.LogInformation("Successfully initialized MCP server '{ServerName}'", serverName);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogError(ex, "Failed to initialize MCP server '{ServerName}'", serverName);
             }
         }
+        return Task.FromResult(toolServices);
+    }
 
-        _initialized = true;
+    private async Task<Dictionary<string, string>> CreateToolToServerMapAsync()
+    {
+        var toolServices = await _toolServices.ValueAsync;
+        var toolToServerMap = new Dictionary<string, string>();
+        foreach (var (serverName, toolService) in toolServices) {
+            try {
+                var tools = await toolService.ListToolsAsync();
+                foreach (var tool in tools) {
+                    toolToServerMap[tool.Name] = serverName;
+                }
+                _logger.LogInformation("Mapped {ToolCount} tools for MCP server '{ServerName}'", tools.Count, serverName);
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Failed to list tools from server '{ServerName}'", serverName);
+            }
+        }
+        return toolToServerMap;
     }
 
     public async Task<IEnumerable<Tool>> GetAllToolsAsync(CancellationToken cancellationToken = default)
     {
         var allTools = new List<Tool>();
-
-        foreach (var (serverName, toolService) in _toolServices)
-        {
-            try
-            {
+        var toolServices = await _toolServices.ValueAsync;
+        foreach (var (serverName, toolService) in toolServices) {
+            try {
                 var tools = await toolService.ListToolsAsync(cancellationToken);
                 allTools.AddRange(tools);
+                Console.WriteLine($"{serverName}:");
+                foreach (var tool in tools) {
+                    Console.WriteLine($"""
+                        {tool.Name}:
+                            title: {tool.Title}
+                            description: {tool.Description}
+                    """);
+                }
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogError(ex, "Failed to get tools from server '{ServerName}'", serverName);
             }
         }
-
         return allTools;
     }
 
     public async Task<CallToolResult> CallToolAsync(string toolName, IReadOnlyDictionary<string, object?> arguments, CancellationToken cancellationToken = default)
     {
-        if (!_toolToServerMap.TryGetValue(toolName, out var serverName))
-        {
+        var toolServices = await _toolServices.ValueAsync;
+        var toolToServerMap = await _toolToServerMap.ValueAsync;
+        if (!toolToServerMap.TryGetValue(toolName, out var serverName)) {
             throw new InvalidOperationException($"Tool '{toolName}' not found in any configured server");
         }
 
-        if (!_toolServices.TryGetValue(serverName, out var toolService))
-        {
+        if (!toolServices.TryGetValue(serverName, out var toolService)) {
             throw new InvalidOperationException($"Server '{serverName}' is not available");
         }
 
@@ -101,11 +114,12 @@ internal class McpClientManager : IMcpClientManager, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        foreach (var toolService in _toolServices.Values)
-        {
+        var toolServices = await _toolServices.ValueAsync;
+        foreach (var toolService in toolServices.Values) {
             await toolService.DisposeAsync();
         }
-        _toolServices.Clear();
-        _toolToServerMap.Clear();
+        toolServices.Clear();
+        var toolToServerMap = await _toolToServerMap.ValueAsync;
+        toolToServerMap.Clear();
     }
 }

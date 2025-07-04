@@ -46,6 +46,7 @@ internal class StdioMcpToolService : McpToolServiceBase
             Name = _config.Name ?? "StdioServer",
             EnvironmentVariables = _config.Env ?? new Dictionary<string, string?>()
         };
+
         return await McpClientFactory.CreateAsync(
             new StdioClientTransport(options),
             new McpClientOptions { ClientInfo = new() { Name = "McpGateway", Version = "1.0.0" } }
