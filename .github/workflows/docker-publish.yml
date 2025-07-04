@@ -15,7 +15,7 @@ concurrency:
 env:
   # Change these values to match your Azure Container Registry
   REGISTRY: clrslatepublic.azurecr.io
-  IMAGE_NAME: utilities/clrswarm
+  IMAGE_NAME: containers/clrswarm
   ACR_NAME: clrslatepublic
   DOCKERFILE_PATH: src/ClrSlate.Swarm/Dockerfile
   BUILD_CONTEXT: .
