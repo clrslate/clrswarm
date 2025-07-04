@@ -33,7 +33,7 @@ public class McpServerConfig
 
     // For SSE/HTTP transport
     public string? Url { get; set; }
-    public Dictionary<string, string?>? Headers { get; set; }
+    public Dictionary<string, string>? Headers { get; set; }
     public string? Name { get; set; }
 
     // Default Type in the getter and setter

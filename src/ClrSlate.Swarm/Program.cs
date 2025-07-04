@@ -21,6 +21,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.DataProtection;
+using ModelContextProtocol.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 

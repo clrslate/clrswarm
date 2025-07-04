@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol;
+using ClrSlate.Swarm.Abstractions;
 using Microsoft.Extensions.Options;
+using ModelContextProtocol.Protocol;
 
 namespace ClrSlate.Swarm.Services;
 
@@ -24,72 +24,42 @@ internal class McpClientManager : IMcpClientManager, IAsyncDisposable
 {
     private readonly McpServersConfiguration _config;
     private readonly ILogger<McpClientManager> _logger;
-    private readonly Dictionary<string, IMcpClient> _clients = new();
+    private readonly IMcpToolServiceFactory _toolServiceFactory;
+    private readonly Dictionary<string, IMcpToolService> _toolServices = new();
     private readonly Dictionary<string, string> _toolToServerMap = new();
     private bool _initialized = false;
 
     public McpClientManager(IOptions<McpServersConfiguration> config, ILogger<McpClientManager> logger)
+        : this(config, logger, new McpToolServiceFactory()) { }
+
+    public McpClientManager(IOptions<McpServersConfiguration> config, ILogger<McpClientManager> logger, IMcpToolServiceFactory toolServiceFactory)
     {
         _config = config.Value;
         _logger = logger;
+        _toolServiceFactory = toolServiceFactory;
     }
 
     public async Task InitializeAsync()
     {
         if (_initialized) return;
 
-        var defaultOptions = new McpClientOptions {
-            ClientInfo = new() { Name = "McpGateway", Version = "1.0.0" }
-        };
+        foreach (var (serverName, serverConfig) in _config.McpServers)
+        {
+            try
+            {
+                var toolService = _toolServiceFactory.Create(serverConfig);
+                _toolServices[serverName] = toolService;
 
-        foreach (var (serverName, serverConfig) in _config.McpServers) {
-            try {
-                IMcpClient client;
-
-                if (serverConfig.IsStdioTransport) {
-                    var transportOptions = new StdioClientTransportOptions {
-                        Command = serverConfig.Command!,
-                        Arguments = serverConfig.Args ?? Array.Empty<string>(),
-                        Name = serverName,
-                        EnvironmentVariables = serverConfig.Env ?? new Dictionary<string, string?>()
-                    };
-
-                    client = await McpClientFactory.CreateAsync(
-                        new StdioClientTransport(transportOptions),
-                        defaultOptions);
-                }
-                else if (serverConfig.IsSseOrHttpTransport) {
-                    var transportOptions = new SseClientTransportOptions {
-                        Endpoint = new Uri(serverConfig.Url!),
-                        Name = serverConfig.Name ?? serverName,
-                        AdditionalHeaders = serverConfig.Headers ?? []
-                    };
-                    transportOptions.TransportMode = !string.IsNullOrWhiteSpace(serverConfig.Type)
-                        ? serverConfig.Type == "sse" ? HttpTransportMode.Sse : HttpTransportMode.StreamableHttp
-                        : HttpTransportMode.AutoDetect;
-
-                    client = await McpClientFactory.CreateAsync(
-                            new SseClientTransport(transportOptions),
-                            defaultOptions);
-                }
-                else {
-                    _logger.LogWarning("Unsupported transport type '{Transport}' for server '{ServerName}'",
-                        serverConfig.Type, serverName);
-                    continue;
-                }
-
-                _clients[serverName] = client;
-
-                // Get tools and map them to the server
-                var tools = await client.ListToolsAsync();
-                foreach (var tool in tools) {
+                var tools = await toolService.ListToolsAsync();
+                foreach (var tool in tools)
+                {
                     _toolToServerMap[tool.Name] = serverName;
                 }
 
-                _logger.LogInformation("Successfully initialized MCP server '{ServerName}' with {ToolCount} tools",
-                    serverName, tools.Count);
+                _logger.LogInformation("Successfully initialized MCP server '{ServerName}' with {ToolCount} tools", serverName, tools.Count);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to initialize MCP server '{ServerName}'", serverName);
             }
         }
@@ -101,13 +71,15 @@ internal class McpClientManager : IMcpClientManager, IAsyncDisposable
     {
         var allTools = new List<Tool>();
 
-        foreach (var (serverName, client) in _clients) {
-            try {
-                var toolInfos = await client.ListToolsAsync();
-                var tools = toolInfos.Select(t => t.ProtocolTool);
+        foreach (var (serverName, toolService) in _toolServices)
+        {
+            try
+            {
+                var tools = await toolService.ListToolsAsync(cancellationToken);
                 allTools.AddRange(tools);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to get tools from server '{ServerName}'", serverName);
             }
         }
@@ -117,28 +89,26 @@ internal class McpClientManager : IMcpClientManager, IAsyncDisposable
 
     public async Task<CallToolResult> CallToolAsync(string toolName, IReadOnlyDictionary<string, object?> arguments, CancellationToken cancellationToken = default)
     {
-        if (!_toolToServerMap.TryGetValue(toolName, out var serverName)) {
+        if (!_toolToServerMap.TryGetValue(toolName, out var serverName))
+        {
             throw new InvalidOperationException($"Tool '{toolName}' not found in any configured server");
         }
 
-        if (!_clients.TryGetValue(serverName, out var client)) {
+        if (!_toolServices.TryGetValue(serverName, out var toolService))
+        {
             throw new InvalidOperationException($"Server '{serverName}' is not available");
         }
 
-        return await client.CallToolAsync(toolName, arguments: arguments, cancellationToken: cancellationToken);
+        return await toolService.CallToolAsync(toolName, arguments, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
     {
-        foreach (var client in _clients.Values) {
-            if (client is IAsyncDisposable asyncDisposable) {
-                await asyncDisposable.DisposeAsync();
-            }
-            else if (client is IDisposable disposable) {
-                disposable.Dispose();
-            }
+        foreach (var toolService in _toolServices.Values)
+        {
+            await toolService.DisposeAsync();
         }
-        _clients.Clear();
+        _toolServices.Clear();
         _toolToServerMap.Clear();
     }
 }
