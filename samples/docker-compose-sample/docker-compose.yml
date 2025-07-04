@@ -6,9 +6,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Production
       McpServers__memory__command: "npx"
       McpServers__memory__args__0: "-y"
       McpServers__memory__args__1: "@modelcontextprotocol/server-memory"
       McpServers__memory__type: "stdio"
-    entrypoint: ["/bin/sh", "-c", "npm install @modelcontextprotocol/server-memory && dotnet ClrSlate.Swarm.dll"]
+      McpServers__sequentialthinking__command: "npx"
+      McpServers__sequentialthinking__args__0: "-y"
+      McpServers__sequentialthinking__args__1: "@modelcontextprotocol/server-sequential-thinking"
+      McpServers__sequentialthinking__type: "stdio"
+    entrypoint: ["/bin/sh", "-c", "dotnet ClrSlate.Swarm.dll"]
