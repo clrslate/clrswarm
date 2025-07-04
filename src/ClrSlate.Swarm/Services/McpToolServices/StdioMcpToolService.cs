@@ -17,23 +17,36 @@
 using ModelContextProtocol.Client;
 using ClrSlate.Swarm.Options;
 using ClrSlate.Swarm.Abstractions;
+using ClrSlate.Swarm.Services.StdioCommandHandlers;
 
 namespace ClrSlate.Swarm.Services.McpToolServices;
 
 internal class StdioMcpToolService : McpToolServiceBase
 {
     private readonly McpServerConfig _config;
-    public StdioMcpToolService(McpServerConfig config) => _config = config;
+    private readonly IStdioCommandHandlerFactory _handlerFactory;
 
-    protected override Task<IMcpClient> CreateClientAsync()
+    public StdioMcpToolService(McpServerConfig config, IStdioCommandHandlerFactory handlerFactory)
     {
+        _config = config;
+        _handlerFactory = handlerFactory;
+    }
+
+    protected override async Task<IMcpClient> CreateClientAsync()
+    {
+        //var handler = _handlerFactory.GetHandler(_config.Command);
+        //if (handler != null)
+        //{
+        //    await handler.HandleAsync(_config.Args);
+        //}
+
         var options = new StdioClientTransportOptions {
             Command = _config.Command!,
             Arguments = _config.Args ?? Array.Empty<string>(),
             Name = _config.Name ?? "StdioServer",
             EnvironmentVariables = _config.Env ?? new Dictionary<string, string?>()
         };
-        return McpClientFactory.CreateAsync(
+        return await McpClientFactory.CreateAsync(
             new StdioClientTransport(options),
             new McpClientOptions { ClientInfo = new() { Name = "McpGateway", Version = "1.0.0" } }
         );

@@ -17,15 +17,25 @@
 using ClrSlate.Swarm.Options;
 using ClrSlate.Swarm.Abstractions;
 using ClrSlate.Swarm.Services.McpToolServices;
+using ClrSlate.Swarm.Services.StdioCommandHandlers;
 
 namespace ClrSlate.Swarm.Services;
 
 public class McpToolServiceFactory : IMcpToolServiceFactory
 {
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IStdioCommandHandlerFactory _commandHandlerFactory;
+
+    public McpToolServiceFactory(IServiceProvider serviceProvider, IStdioCommandHandlerFactory commandHandlerFactory)
+    {
+        _serviceProvider = serviceProvider;
+        _commandHandlerFactory = commandHandlerFactory;
+    }
+
     public IMcpToolService Create(McpServerConfig config)
     {
         if (config.IsStdioTransport)
-            return new StdioMcpToolService(config);
+            return new StdioMcpToolService(config, _commandHandlerFactory);
         if (config.Type.Equals("sse", StringComparison.OrdinalIgnoreCase))
             return new SseMcpToolService(config);
         if (config.Type.Equals("http", StringComparison.OrdinalIgnoreCase))

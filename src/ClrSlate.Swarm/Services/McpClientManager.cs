@@ -29,9 +29,6 @@ internal class McpClientManager : IMcpClientManager, IAsyncDisposable
     private readonly Dictionary<string, string> _toolToServerMap = new();
     private bool _initialized = false;
 
-    public McpClientManager(IOptions<McpServersConfiguration> config, ILogger<McpClientManager> logger)
-        : this(config, logger, new McpToolServiceFactory()) { }
-
     public McpClientManager(IOptions<McpServersConfiguration> config, ILogger<McpClientManager> logger, IMcpToolServiceFactory toolServiceFactory)
     {
         _config = config.Value;

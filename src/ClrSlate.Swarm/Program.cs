@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-using ClrSlate.Swarm.Options;
 using ClrSlate.Swarm.Services;
 using ModelContextProtocol.Protocol;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.DataProtection;
-using ModelContextProtocol.Client;
+using ClrSlate.Swarm.Abstractions;
+using ClrSlate.Swarm.Services.StdioCommandHandlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,8 +33,14 @@ builder.Services.AddDataProtection()
 builder.Services.Configure<McpServersConfiguration>(
     builder.Configuration);
 
-// Register the MCP client manager
+// Register the MCP client manager with all dependencies
 builder.Services.AddSingleton<IMcpClientManager, McpClientManager>();
+builder.Services.AddSingleton<McpClientManager>(); // If direct use is needed
+
+// Register command handlers and factory for DI
+builder.Services.AddSingleton<IStdioCommandHandler, NpxCommandHandler>();
+builder.Services.AddSingleton<IStdioCommandHandlerFactory, StdioCommandHandlerFactory>();
+builder.Services.AddSingleton<IMcpToolServiceFactory, McpToolServiceFactory>();
 
 // Add health checks
 builder.Services.AddHealthChecks();
@@ -54,14 +60,9 @@ builder.Services.AddOpenTelemetry()
     .WithLogging()
     .UseOtlpExporter();
 
-// Create a simple client manager for handlers
-var config = builder.Configuration.GetSection("McpServers").Get<Dictionary<string, McpServerConfig>>() ?? new();
-var logger = LoggerFactory.Create(lb => lb.AddConsole()).CreateLogger<McpClientManager>();
-var mcpConfig = new McpServersConfiguration { McpServers = config };
-var clientManager = new McpClientManager(Microsoft.Extensions.Options.Options.Create(mcpConfig), logger);
-await clientManager.InitializeAsync();
 
 mcpServerBuilder.WithListToolsHandler(async (context, cancellationToken) => {
+    var clientManager = context!.Services!.GetRequiredService<IMcpClientManager>();
     var tools = await clientManager.GetAllToolsAsync(cancellationToken);
     IList<Tool> toolsResult = tools.ToList();
     return new ListToolsResult { Tools = toolsResult };
@@ -74,7 +75,8 @@ mcpServerBuilder.WithCallToolHandler(async (context, cancellationToken) => {
             inputArguments.Add(arg.Key, arg.Value);
         }
     }
-    
+
+    var clientManager = context!.Services!.GetRequiredService<IMcpClientManager>();
     var result = await clientManager.CallToolAsync(context!.Params!.Name, arguments: inputArguments!, cancellationToken: cancellationToken);
     return result;
 });
@@ -84,6 +86,9 @@ var app = builder.Build();
 // Map liveness and readiness endpoints
 app.MapHealthChecks("/health");
 app.MapHealthChecks("/ready");
+
+var clientManager = app.Services.GetRequiredService<IMcpClientManager>();
+await clientManager.InitializeAsync();
 
 // Display available tools for debugging
 var tools = await clientManager.GetAllToolsAsync();
