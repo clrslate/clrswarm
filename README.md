@@ -1,5 +1,12 @@
 # ClrSwarm 🐝
 
+![.NET](https://img.shields.io/badge/.NET-9.0-purple?style=for-the-badge&logo=dotnet)
+[![License](https://img.shields.io/github/license/clrslate/clrswarm?style=for-the-badge)](https://github.com/clrslate/clrswarm?tab=License-1-ov-file#readme)
+![Issues](https://img.shields.io/github/issues/clrslate/clrswarm?style=for-the-badge)
+[![Stars](https://img.shields.io/github/stars/clrslate/clrswarm?style=for-the-badge)](https://github.com/clrslate/clrswarm/stargazers)
+![Forks](https://img.shields.io/github/forks/clrslate/clrswarm?style=for-the-badge)
+[![GitHub contributors](https://img.shields.io/github/contributors/clrslate/clrswarm?style=for-the-badge)](https://github.com/clrslate/clrswarm/graphs/contributors)
+
 _The open-source "bee colony" that assembles MCP Gateways, Kubernetes Operators, and next-gen AI automations—one modular cell at a time._
 
 **ClrSwarm** is part of the **ClrSlate** platform and represents our contribution to the community. These are the battle-tested tools that have helped us build and scale our infrastructure, and we hope they'll help others in the community as well.
@@ -71,12 +78,8 @@ The **Agentic Extensions** layer adds AI-powered automation that can consume any
 
 ## 💪 Contributing
 
-<p align="center">
-    <a href="https://github.com/clrslate/clrswarm/graphs/contributors">
-        <img src="https://contrib.rocks/image?repo=clrslate/clrswarm&columns=10" />
-    </a>
-</p>
+[![Contributors](https://contrib.rocks/image?repo=clrslate/clrswarm&type=Timeline)](https://github.com/clrslate/clrswarm/graphs/contributors&type=Timeline)
 
 ## ✨ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=clrslate/clrswarm)](https://www.star-history.com/#clrslate/clrswarm)
+[![Star History Chart](https://api.star-history.com/svg?repos=clrslate/clrswarm&type=Timeline)](https://www.star-history.com/#clrslate/clrswarm&Timeline)
