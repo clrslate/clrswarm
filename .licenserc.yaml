@@ -14,6 +14,7 @@ header:
     - 'LICENSE'
     - 'NOTICE'
     - 'README.md'
+    - '**/README.md'
     - 'CONTRIBUTING.md'
     - 'CODE_OF_CONDUCT.md'
     - 'docs/'
