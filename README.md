@@ -76,10 +76,6 @@ The **Agentic Extensions** layer adds AI-powered automation that can consume any
 
 **Use case**: Create intelligent automation that can read logs via one MCP server, analyze trends via another, and automatically scale resources through a third - all coordinated through agent-to-agent communication.
 
-## 💪 Contributing
-
-[![Contributors](https://contrib.rocks/image?repo=clrslate/clrswarm&type=Timeline)](https://github.com/clrslate/clrswarm/graphs/contributors&type=Timeline)
-
 ## ✨ Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=clrslate/clrswarm&type=Timeline)](https://www.star-history.com/#clrslate/clrswarm&Timeline)
