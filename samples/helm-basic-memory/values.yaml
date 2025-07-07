@@ -16,8 +16,8 @@ ingress:
   enabled: false
 
 # MCP Servers Configuration
-mcpServers:
-  memory:
+McpServers:
+  fetch:
     type: "stdio"
     command: "uvx"
     args:

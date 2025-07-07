@@ -266,3 +266,5 @@ MigrationBackup/
 .ionide/
 
 src/**/data/
+
+.tests/

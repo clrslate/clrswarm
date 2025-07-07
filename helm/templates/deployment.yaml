@@ -46,8 +46,8 @@ spec:
               value: {{ .Values.app.environment | quote }}
           volumeMounts:
             - name: config
-              mountPath: /app/appsettings.json
-              subPath: appsettings.json
+              mountPath: /app/appsettings.{{ .Values.app.environment }}.json
+              subPath: appsettings.{{ .Values.app.environment }}.json
               readOnly: true
             {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
