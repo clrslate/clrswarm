@@ -45,19 +45,10 @@ service:
 
 ingress:
   enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: clrslate-swarm.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-  #  - secretName: clrslate-swarm-tls
-  #    hosts:
-  #      - clrslate-swarm.local
+  gateway: gateway
+  domain:
+    base: ""
+    sub: ""
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
