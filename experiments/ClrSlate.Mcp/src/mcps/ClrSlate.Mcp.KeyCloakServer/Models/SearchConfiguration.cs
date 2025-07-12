@@ -1,0 +1,32 @@
+/*
+ * Copyright 2025 ClrSlate Tech labs Private Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace ClrSlate.Mcp.KeyCloakServer.Models;
+
+public class SearchConfiguration
+{
+    public const string SectionName = "Search";
+
+    public string CatalogApiBaseUrl { get; set; } = "https://store.beta.clrslate.app";
+    public string OllamaBaseUrl { get; set; } = "http://localhost:11434";
+    public string OllamaModel { get; set; } = "nomic-embed-text";
+    public string QdrantHost { get; set; } = "127.0.0.1";
+    public int QdrantPort { get; set; } = 6334;
+    public string QdrantCollection { get; set; } = "catalog-embeddings";
+    public int VectorDimensions { get; set; } = 2768; // nomic-embed-text dimensions
+    public int BatchSize { get; set; } = 10;
+    public TimeSpan HttpTimeout { get; set; } = TimeSpan.FromMinutes(5);
+}

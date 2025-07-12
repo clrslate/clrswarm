@@ -22,6 +22,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
     <PackageReference Include="YamlDotNet.System.Text.Json" Version="1.6.6" />
+    <PackageReference Include="Qdrant.Client" Version="1.13.0" />
   </ItemGroup>
 
   <ItemGroup>
