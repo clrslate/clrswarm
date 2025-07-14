@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\agents\ClrSlate.Agents.TestAgent\ClrSlate.Agents.TestAgent.csproj" />
     <ProjectReference Include="..\..\McpClientPlayground\McpClientPlayground.csproj" />
     <ProjectReference Include="..\aspire\hosting\ClrSlate.Aspire.Hosting.McpInspector\ClrSlate.Aspire.Hosting.McpInspector.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\mcps\ClrSlate.Mcp.KeyCloakServer\ClrSlate.Mcp.KeyCloakServer.csproj" />

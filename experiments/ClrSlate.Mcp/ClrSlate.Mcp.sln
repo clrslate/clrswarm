@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClrSlate.Mcp.KeyCloakServer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "McpClientPlayground", "McpClientPlayground\McpClientPlayground.csproj", "{BC8191A3-6D93-4002-B836-9A530D162229}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{413EF418-A924-4535-9DA4-22EFE8687478}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClrSlate.Agents.TestAgent", "agents\ClrSlate.Agents.TestAgent\ClrSlate.Agents.TestAgent.csproj", "{9D9A9738-D489-0FEF-19E8-FD45F73E7554}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,10 @@ Global
 		{BC8191A3-6D93-4002-B836-9A530D162229}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC8191A3-6D93-4002-B836-9A530D162229}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC8191A3-6D93-4002-B836-9A530D162229}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D9A9738-D489-0FEF-19E8-FD45F73E7554}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D9A9738-D489-0FEF-19E8-FD45F73E7554}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D9A9738-D489-0FEF-19E8-FD45F73E7554}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D9A9738-D489-0FEF-19E8-FD45F73E7554}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -54,6 +62,7 @@ Global
 		{44AB0CC4-8626-474A-A5FC-679B8EA676B8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{EFFB62BD-D646-EA2A-2E36-F6AF7D4A7329} = {44AB0CC4-8626-474A-A5FC-679B8EA676B8}
 		{20712D8E-DF15-03BD-B849-3F3B9DDB958C} = {5DB26F10-692A-4DDF-ABA5-D154520154D1}
+		{9D9A9738-D489-0FEF-19E8-FD45F73E7554} = {413EF418-A924-4535-9DA4-22EFE8687478}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B5276946-8B33-4638-A9DE-57A90439B4E9}
