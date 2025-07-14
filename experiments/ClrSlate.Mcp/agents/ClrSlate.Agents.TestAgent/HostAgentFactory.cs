@@ -17,6 +17,7 @@
 ﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.A2A;
+using ModelContextProtocol.Client;
 using SharpA2A.Core;
 
 namespace ClrSlate.Agents.TestAgent;
@@ -39,6 +40,25 @@ public static class HostAgentFactory
         }
         var kernel = builder.Build();
 
+        var mcpOptions = new SseClientTransportOptions {
+            Endpoint = new Uri("http://localhost:58750"),
+            Name = "StreamableHttpServer",
+            TransportMode = HttpTransportMode.StreamableHttp
+        };
+
+        await using var client = await McpClientFactory.CreateAsync(
+            new SseClientTransport(mcpOptions),
+            new McpClientOptions {
+                ClientInfo = new() {
+                    Name = "ClrCore",
+                    Version = "1.0.0"
+                }
+            }
+        );
+
+        var tools = await client.ListToolsAsync();
+        kernel.Plugins.AddFromFunctions("Tools", tools.Select(aiFunction => aiFunction.AsKernelFunction()));
+
         var agent = new ChatCompletionAgent() {
             Kernel = kernel,
             Name = name,
@@ -57,6 +77,7 @@ public static class HostAgentFactory
     }
 
     #region private
+    
     private static AgentCard GetInvoiceAgentCard()
     {
         var capabilities = new AgentCapabilities() {

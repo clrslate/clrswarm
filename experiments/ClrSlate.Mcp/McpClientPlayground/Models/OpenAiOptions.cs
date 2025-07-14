@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-﻿using ModelContextProtocol.Server;
-using System.ComponentModel;
+﻿namespace McpClientPlayground.Models;
 
-namespace ClrSlate.Mcp.KeyCloakServer.Tools;
-
-[McpServerToolType]
-public sealed class EchoTool
+public record OpenAiOptions
 {
-    [McpServerTool(Title = "Echo"), Description("Echoes the input back to the client.")]
-    public static string Echo(string message)
-    {
-        Console.WriteLine($"Echo tool called with: {message}");
-        return "hello " + message;
-    }
+    public string ModelId { get; set; } = "azure/o4-mini";
+    public string Endpoint { get; set; } = "https://litellm.beta.clrslate.app";
+    public string ApiKey { get; set; }
 }

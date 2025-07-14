@@ -18,7 +18,7 @@
 using ModelContextProtocol.Client;
 
 namespace McpClientPlayground.BackgroundServices;
-internal class PlaygroundHostedService : IHostedService
+internal class McpClientPlaygroundService : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {

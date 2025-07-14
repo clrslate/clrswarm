@@ -19,6 +19,7 @@ using ClrSlate.Agents.TestAgent.Plugins;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents.A2A;
 using SharpA2A.AspNetCore;
+using ModelContextProtocol.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,5 +55,6 @@ A2AHostAgent? hostAgent = await HostAgentFactory.CreateChatCompletionHostAgentAs
             """,
             openAiOptions,
             invoicePlugins);
+
 app.MapA2A(hostAgent!.TaskManager!, "");
 app.Run();

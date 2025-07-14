@@ -25,7 +25,7 @@ var keycloakConfig = builder.Configuration.GetSection("keycloak").Get<KeyCloakCo
 var username = builder.AddParameter("username", keycloakConfig.Admin.UserName);
 var password = builder.AddParameter("password", keycloakConfig.Admin.Password, secret: true);
 
-var keycloak = builder.AddKeycloak("keycloak", 8080, adminUsername: username, adminPassword: password)
+var keycloak = builder.AddKeycloak("keycloak", adminUsername: username, adminPassword: password)
     .WithDataVolume();
 
 var keycloakMcpServer = builder.AddProject<Projects.ClrSlate_Mcp_KeyCloakServer>("keycloak-mcp")
@@ -33,8 +33,11 @@ var keycloakMcpServer = builder.AddProject<Projects.ClrSlate_Mcp_KeyCloakServer>
         .WithEnvironment("keycloak__password", password)
         .WithReference(keycloak).WaitFor(keycloak);
 
-var playground = builder.AddProject<Projects.McpClientPlayground>("playground")
-        .WithReference(keycloakMcpServer).WaitFor(keycloakMcpServer);
+var a2aTestAgent = builder.AddProject<Projects.ClrSlate_Agents_TestAgent>("a2a-test-agent")
+    .WithReference(keycloakMcpServer).WaitFor(keycloakMcpServer);
+
+//var playground = builder.AddProject<Projects.McpClientPlayground>("playground")
+//        .WithReference(keycloakMcpServer).WaitFor(keycloakMcpServer);
 
 builder.AddMcpInspector("mcp-inspector")
     .WithMcpServer(keycloakMcpServer);

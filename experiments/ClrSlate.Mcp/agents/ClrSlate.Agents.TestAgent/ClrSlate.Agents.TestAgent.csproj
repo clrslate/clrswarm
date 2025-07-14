@@ -5,14 +5,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>54f044d6-d634-43d0-9f63-b1cd2d277847</UserSecretsId>
+    <NoWarn>$(NoWarn);CS1591;VSTHRD111;CA2007;SKEXP0110;SKEXP0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.60.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Agents.A2A" Version="1.60.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.60.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.60.0" />
     <PackageReference Include="SharpA2A.AspNetCore" Version="0.2.2-preview.1" />
     <PackageReference Include="SharpA2A.Core" Version="0.2.2-preview.1" />
+    <PackageReference Include="ModelContextProtocol.Core" Version="0.3.0-preview.2" />
   </ItemGroup>
 
   <ItemGroup>
