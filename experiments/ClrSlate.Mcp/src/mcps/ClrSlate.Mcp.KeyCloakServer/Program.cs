@@ -21,9 +21,10 @@ using ClrSlate.Mcp.KeyCloakServer.Services;
 using ClrSlate.Mcp.KeyCloakServer.Tools;
 using ModelContextProtocol.Protocol;
 using Qdrant.Client;
+using Microsoft.Extensions.AI;
 
 var builder = WebApplication.CreateBuilder(args);
-
+//builder.AddKeyedOllamaApiClient("ollama").AddKeyedEmbeddingGenerator();
 // Configure search settings
 builder.Services.Configure<SearchConfiguration>(
     builder.Configuration.GetSection(SearchConfiguration.SectionName));
@@ -34,33 +35,11 @@ builder.Services.AddHttpClient<CatalogApiService>(client =>
     client.BaseAddress = new Uri("https://store.beta.clrslate.app");
     client.DefaultRequestHeaders.Add("User-Agent", "ClrSlateKeyCloakServer/1.0");
 });
-
-// Add HTTP client for Ollama API calls
-builder.Services.AddHttpClient("ollama", client =>
-{
-    client.BaseAddress = new Uri("http://localhost:11434");
-    client.DefaultRequestHeaders.Add("User-Agent", "ClrSlateKeyCloakServer/1.0");
-    client.Timeout = TimeSpan.FromMinutes(5);
-});
-
-// Add Qdrant client
-builder.Services.AddSingleton<QdrantClient>(serviceProvider =>
-{
-    var logger = serviceProvider.GetRequiredService<ILogger<QdrantClient>>();
-    var config = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<SearchConfiguration>>().Value;
-
-    try
-    {
-        logger.LogInformation("Attempting to connect to Qdrant gRPC at {Host}:{Port}", config.QdrantHost, config.QdrantPort);
-        return new QdrantClient(config.QdrantHost, config.QdrantPort);
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Failed to create QdrantClient. Make sure Qdrant is running on {Host}:{Port}", config.QdrantHost, config.QdrantPort);
-        logger.LogWarning("Creating QdrantClient anyway - connection will be tested during service initialization");
-        return new QdrantClient(config.QdrantHost, config.QdrantPort);
-    }
-});
+// Add Ollama API client using CommunityToolkit.Aspire.OllamaSharp
+// This registers IOllamaApiClient as a keyed service with "ollama" key
+builder.AddKeyedOllamaApiClient("ollama");
+// Add Qdrant client using Aspire integration
+builder.AddQdrantClient("qdrant");
 
 // Register search services
 builder.Services.AddSingleton<CatalogApiService>();
@@ -86,6 +65,7 @@ var mcpBuilder = builder.Services.AddMcpServer(options =>
     .WithTools<TinyImageTool>()
     .WithTools<SemanticSearchTool>()
     .WithTools<DataIngestionTool>()
+    .WithTools<CatalogAPITool>()
     .WithPrompts<SimplePromptType>()
     .WithPrompts<ComplexPromptType>()
     .WithResources<SimpleResourceType>()

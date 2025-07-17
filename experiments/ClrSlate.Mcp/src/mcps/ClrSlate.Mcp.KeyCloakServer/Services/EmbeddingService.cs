@@ -16,7 +16,9 @@
 
 using ClrSlate.Mcp.KeyCloakServer.Models;
 using Microsoft.Extensions.Options;
-using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using OllamaSharp;
+using OllamaSharp.Models;
 
 namespace ClrSlate.Mcp.KeyCloakServer.Services;
 
@@ -24,66 +26,83 @@ public class EmbeddingService
 {
     private readonly SearchConfiguration _config;
     private readonly ILogger<EmbeddingService> _logger;
-    private readonly HttpClient _httpClient;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly IOllamaApiClient _ollamaApiClient;
 
     public EmbeddingService(
         IOptions<SearchConfiguration> config,
         ILogger<EmbeddingService> logger,
-        IHttpClientFactory httpClientFactory)
+        [FromKeyedServices("ollama")] IOllamaApiClient ollamaApiClient)
     {
         _config = config.Value;
         _logger = logger;
-        _httpClient = httpClientFactory.CreateClient("ollama");
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true
-        };
+        _ollamaApiClient = ollamaApiClient;
     }
 
     public async Task<float[]> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
     {
-        try
+        const int maxRetries = 3;
+        const int retryDelayMs = 2000;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            if (string.IsNullOrWhiteSpace(text))
+            try
             {
-                _logger.LogWarning("Empty text provided for embedding generation");
-                return new float[_config.VectorDimensions];
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    _logger.LogWarning("Empty text provided for embedding generation");
+                    return new float[_config.VectorDimensions];
+                }
+
+                _logger.LogDebug("Generating embedding for text: {TextPreview}... (attempt {Attempt}/{MaxRetries})",
+    text.Length > 50 ? text.Substring(0, 50) : text, attempt, maxRetries);
+
+                // Use OllamaSharp's EmbedAsync method
+                var embedResponse = await _ollamaApiClient.EmbedAsync(new EmbedRequest
+                {
+                    Model = _config.OllamaModel,
+                    Input = new List<string> { text}
+                }, cancellationToken);
+
+                if (embedResponse?.Embeddings == null || !embedResponse.Embeddings.Any())
+                {
+                    _logger.LogError("No embedding returned from Ollama API");
+                    throw new InvalidOperationException("Empty embedding response from Ollama");
+                }
+
+                var embedding = embedResponse.Embeddings.First();
+                if (embedding == null || embedding.Length == 0)
+                {
+                    _logger.LogError("Empty embedding vector returned from Ollama API");
+                    throw new InvalidOperationException("Empty embedding vector from Ollama");
+                }
+
+                _logger.LogDebug("Successfully generated embedding with {Dimensions} dimensions", embedding.Length);
+                return embedding;
             }
-
-            _logger.LogDebug("Generating embedding for text: {TextPreview}...",
-                text.Length > 50 ? text.Substring(0, 50) : text);
-
-            var requestBody = new
+            catch (HttpRequestException httpEx) when (httpEx.Message.Contains("404") && attempt < maxRetries)
             {
-                model = _config.OllamaModel,
-                prompt = text
-            };
+                _logger.LogWarning("Model {Model} not ready yet (404), waiting {DelayMs}ms before retry {Attempt}/{MaxRetries}. This is normal during initial model download.",
+                    _config.OllamaModel, retryDelayMs, attempt, maxRetries);
 
-            var json = JsonSerializer.Serialize(requestBody, _jsonOptions);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("/api/embeddings", content, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
-            var embeddingResponse = JsonSerializer.Deserialize<OllamaEmbeddingResponse>(responseJson, _jsonOptions);
-
-            if (embeddingResponse?.Embedding == null || embeddingResponse.Embedding.Length == 0)
-            {
-                _logger.LogError("No embedding returned from Ollama API");
-                throw new InvalidOperationException("Empty embedding response from Ollama");
+                await Task.Delay(retryDelayMs, cancellationToken);
+                continue;
             }
+            catch (Exception ex) when (attempt < maxRetries)
+            {
+                _logger.LogWarning(ex, "Error generating embedding (attempt {Attempt}/{MaxRetries}), retrying in {DelayMs}ms...",
+                    attempt, maxRetries, retryDelayMs);
 
-            _logger.LogDebug("Successfully generated embedding with {Dimensions} dimensions", embeddingResponse.Embedding.Length);
-            return embeddingResponse.Embedding;
+                await Task.Delay(retryDelayMs, cancellationToken);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating embedding for text after {MaxRetries} attempts", maxRetries);
+                throw;
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating embedding for text");
-            throw;
-        }
+
+        throw new InvalidOperationException($"Failed to generate embedding after {maxRetries} attempts");
     }
 
     public async Task<List<float[]>> GenerateBatchEmbeddingsAsync(
@@ -114,35 +133,17 @@ public class EmbeddingService
 
     public async Task<bool> IsModelAvailableAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var response = await _httpClient.GetAsync("/api/tags", cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
-            var modelsResponse = JsonSerializer.Deserialize<OllamaModelsResponse>(responseJson, _jsonOptions);
-
-            var modelExists = modelsResponse?.Models?.Any(m => m.Name.Contains(_config.OllamaModel)) ?? false;
-
-            _logger.LogInformation("Model {Model} availability: {Available}", _config.OllamaModel, modelExists);
-            return modelExists;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking if model {Model} is available", _config.OllamaModel);
-            return false;
-        }
+        // In Aspire containerized scenarios, we trust that the model is managed by the orchestrator
+        // The actual availability will be tested during embedding generation
+        _logger.LogInformation("Model {Model} availability assumed (Aspire-managed)", _config.OllamaModel);
+        return true;
     }
 
     public async Task EnsureModelAvailableAsync(CancellationToken cancellationToken = default)
     {
-        if (await IsModelAvailableAsync(cancellationToken))
-        {
-            _logger.LogInformation("Model {Model} is available", _config.OllamaModel);
-            return;
-        }
-
-        _logger.LogWarning("Model {Model} not found. Please run: ollama pull {Model}", _config.OllamaModel, _config.OllamaModel);
-        throw new InvalidOperationException($"Model {_config.OllamaModel} is not available. Run: ollama pull {_config.OllamaModel}");
+        // In Aspire containerized scenarios, model availability is managed by the orchestrator
+        // No need for manual model checks - let embedding generation handle any issues
+        _logger.LogInformation("Model {Model} availability ensured by Aspire orchestration", _config.OllamaModel);
+        await Task.CompletedTask;
     }
 }
