@@ -1,0 +1,6 @@
+@ClrSlate.Agents.TestAgent_HostAddress = http://localhost:5041
+
+GET {{ClrSlate.Agents.TestAgent_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
