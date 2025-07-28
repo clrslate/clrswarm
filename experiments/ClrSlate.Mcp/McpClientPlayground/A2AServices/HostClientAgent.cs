@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2025 ClrSlate Tech labs Private Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 
+using McpClientPlayground.ClientPlugins;
 using McpClientPlayground.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -35,7 +36,8 @@ internal sealed class HostClientAgent
     }
     internal async Task InitializeAgentAsync(string modelId, string endpoint, string apiKey, string[] agentUrls)
     {
-        try {
+        try
+        {
             this._logger.LogInformation("Initializing Semantic Kernel agent with model: {ModelId}", modelId);
 
             // Connect to the remote agents via A2A
@@ -46,25 +48,62 @@ internal sealed class HostClientAgent
 
             // Define the Host agent
             var builder = Kernel.CreateBuilder();
-            var openAiClient = new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions {
+            var openAiClient = new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions
+            {
                 Endpoint = new Uri(endpoint)
             });
             builder.AddOpenAIChatCompletion(modelId, openAiClient);
             builder.Plugins.Add(agentPlugin);
+            builder.Plugins.AddFromObject(new WriteFilePlugin());
             var kernel = builder.Build();
             kernel.FunctionInvocationFilters.Add(new ConsoleOutputFunctionInvocationFilter());
-
-            this.Agent = new ChatCompletionAgent() {
+            this.Agent = new ChatCompletionAgent()
+            {
                 Kernel = kernel,
                 Name = "HostClient",
                 Instructions =
-                    """
-                    You specialize in handling queries for users and using your tools to provide answers.
-                    """,
+    """"
+    # Clrslate Assistant
+    -Description 
+    You are ClrSlate Assistant designed to convert user queries into meaningful workflows. 
+    -IMPORTANT TO DOs
+    Make sure that all activities included in the workflow are verified, you can check that by tools. 
+
+    1. Understand the user's infrastructure requirements.
+    3. Create a valid, sequential workflow. Make sure all activities exist using the mcp tools.
+    4. Once the workflow is created, show it in the JSON format specified below.
+    5. Ask the user for confirmation: "Do you want me to write this workflow to disk?".
+    6. Only after user confirmation, write the workflow to disk using the WriteFile tool.
+     
+
+    -Workflow Output Format
+    When constructing workflows, use the following JSON format to ensure clarity and consistency:
+    Here the placeholder <activity-id> should be a real id, 
+    """
+                json
+    {
+      "name": "<setup-xyz>",
+      "nodes": [
+        {
+          "activityId": "<activity-id>"
+        }
+      ],
+      "edges":[
+        {
+          "source": "<source-activity-id>",
+          "target": "<target-activity-id>"
+        }
+      ]  
+    }
+    """
+
+    """"
+,
                 Arguments = new KernelArguments(new PromptExecutionSettings() { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() }),
             };
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             this._logger.LogError(ex, "Failed to initialize HostClientAgent");
             throw;
         }
@@ -80,7 +119,8 @@ internal sealed class HostClientAgent
 
     private async Task<A2AAgent> CreateAgentAsync(string agentUri)
     {
-        var httpClient = new HttpClient {
+        var httpClient = new HttpClient
+        {
             BaseAddress = new Uri(agentUri),
             Timeout = TimeSpan.FromSeconds(60)
         };
@@ -114,17 +154,20 @@ internal sealed class ConsoleOutputFunctionInvocationFilter() : IFunctionInvocat
         Console.WriteLine($"\nCalling Agent {context.Function.Name} with arguments:");
         Console.ForegroundColor = ConsoleColor.Gray;
 
-        foreach (var kvp in context.Arguments) {
+        foreach (var kvp in context.Arguments)
+        {
             Console.WriteLine(IndentMultilineString($"  {kvp.Key}: {kvp.Value}"));
         }
 
         await next(context);
 
-        if (context.Result.GetValue<object>() is ChatMessageContent[] chatMessages) {
+        if (context.Result.GetValue<object>() is ChatMessageContent[] chatMessages)
+        {
             Console.ForegroundColor = ConsoleColor.DarkGray;
 
             Console.WriteLine($"Response from Agent {context.Function.Name}:");
-            foreach (var message in chatMessages) {
+            foreach (var message in chatMessages)
+            {
                 Console.ForegroundColor = ConsoleColor.Gray;
 
                 Console.WriteLine(IndentMultilineString($"{message}"));

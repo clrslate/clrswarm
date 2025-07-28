@@ -25,11 +25,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
-builder.Services.AddHttpClient().AddLogging();
+builder.Services.AddHttpClient().AddRequestTimeouts().AddLogging();
 
 // Add CORS services to allow any origin, method, and header
-builder.Services.AddCors(options => {
-    options.AddDefaultPolicy(policy => {
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
@@ -38,23 +40,34 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 var credential = builder.Configuration["LiteLlm:Token"] ?? throw new InvalidOperationException("Missing configuration: GitHubModels:Token. See the README for details.");
-var openAiOptions = new OpenAiOptions {
+var openAiOptions = new OpenAiOptions
+{
     ApiKey = credential
 };
 
 // Use CORS middleware
 app.UseCors();
 
-IEnumerable<KernelPlugin> invoicePlugins = [KernelPluginFactory.CreateFromType<InvoiceQueryPlugin>()];
 
-A2AHostAgent? hostAgent = await HostAgentFactory.CreateChatCompletionHostAgentAsync(
-            "INVOICE",
-            "InvoiceAgent",
-            """
-            You specialize in handling queries related to invoices.
-            """,
-            openAiOptions,
-            invoicePlugins);
+A2AHostAgent? catalogAgent = await HostAgentFactory.CreateChatCompletionHostAgentAsync(
+            "CATALOG",
+            "CatalogAgent",
+            """"
+            You are the CatalogAgent. You are expected to respond using tool calls wherever possible instead of replying in natural language.            
+            When returning tool calls, always return in structured output, dont sumarize yourself.
+            Always reference IDs of packages and activities that you are including in your response.
+            """",
+            openAiOptions);
 
-app.MapA2A(hostAgent!.TaskManager!, "");
+            
+
+app.MapA2A(catalogAgent!.TaskManager!, "");
+
+// Ensure MCP clients are cleaned up on application shutdown
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+lifetime.ApplicationStopping.Register(() =>
+{
+    HostAgentFactory.CleanupMcpClients();
+});
+
 app.Run();

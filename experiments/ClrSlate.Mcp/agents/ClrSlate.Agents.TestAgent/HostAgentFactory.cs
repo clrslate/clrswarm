@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-﻿using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.A2A;
 using ModelContextProtocol.Client;
 using SharpA2A.Core;
+using System.Collections.Concurrent;
 
 namespace ClrSlate.Agents.TestAgent;
 
 public static class HostAgentFactory
 {
+    // Keep MCP clients alive to prevent disposal while agents are using them
+    private static readonly ConcurrentDictionary<string, IMcpClient> _mcpClients = new();
     internal static async Task<A2AHostAgent> CreateChatCompletionHostAgentAsync(
         string agentType,
         string name,
@@ -33,142 +36,169 @@ public static class HostAgentFactory
     {
         var builder = Kernel.CreateBuilder();
         builder.AddAzureOpenAIChatCompletion(options.ModelId, options.Endpoint, options.ApiKey);
-        if (plugins is not null) {
-            foreach (var plugin in plugins) {
+        if (plugins is not null)
+        {
+            foreach (var plugin in plugins)
+            {
                 builder.Plugins.Add(plugin);
             }
         }
         var kernel = builder.Build();
-
-        var mcpOptions = new SseClientTransportOptions {
+        var mcpOptions = new SseClientTransportOptions
+        {
             Endpoint = new Uri("http://localhost:58750"),
             Name = "StreamableHttpServer",
             TransportMode = HttpTransportMode.StreamableHttp
         };
 
-        await using var client = await McpClientFactory.CreateAsync(
-            new SseClientTransport(mcpOptions),
-            new McpClientOptions {
-                ClientInfo = new() {
-                    Name = "ClrCore",
-                    Version = "1.0.0"
+        // Create or reuse MCP client - keep it alive for the agent's lifetime
+        var clientKey = $"{mcpOptions.Endpoint}_{name}";
+        if (!_mcpClients.TryGetValue(clientKey, out var client))
+        {
+            client = await McpClientFactory.CreateAsync(
+                new SseClientTransport(mcpOptions),
+                new McpClientOptions
+                {
+                    ClientInfo = new()
+                    {
+                        Name = "ClrCore",
+                        Version = "1.0.0"
+                    }
                 }
-            }
-        );
+            );
+            _mcpClients.TryAdd(clientKey, client);
+        }
 
         var tools = await client.ListToolsAsync();
         kernel.Plugins.AddFromFunctions("Tools", tools.Select(aiFunction => aiFunction.AsKernelFunction()));
 
-        var agent = new ChatCompletionAgent() {
+        // Add the MCP tools plugin that provides high-level access to MCP server functionality
+        var mcpToolsPlugin = KernelPluginFactory.CreateFromObject(new Plugins.McpToolsPlugin(kernel), "McpTools");
+        kernel.Plugins.Add(mcpToolsPlugin);
+
+        var agent = new ChatCompletionAgent()
+        {
             Kernel = kernel,
             Name = name,
             Instructions = instructions,
             Arguments = new KernelArguments(new PromptExecutionSettings() { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() }),
         };
 
-        AgentCard agentCard = agentType.ToUpperInvariant() switch {
-            "INVOICE" => GetInvoiceAgentCard(),
-            "POLICY" => GetPolicyAgentCard(),
-            "LOGISTICS" => GetLogisticsAgentCard(),
+        AgentCard agentCard = agentType.ToUpperInvariant() switch
+        {
+            "GENERAL" => GetGeneralAgentCard(),
+            "CATALOG" => GetCatalogAgentCard(),
             _ => throw new ArgumentException($"Unsupported agent type: {agentType}"),
         };
 
         return new A2AHostAgent(agent, agentCard);
     }
 
+    /// <summary>
+    /// Cleans up MCP client resources. Call this when shutting down the application.
+    /// </summary>
+    public static void CleanupMcpClients()
+    {
+        foreach (var client in _mcpClients.Values)
+        {
+            try
+            {
+                if (client is IDisposable disposableClient)
+                {
+                    disposableClient.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing MCP client: {ex.Message}");
+            }
+        }
+        _mcpClients.Clear();
+    }
+
     #region private
-    
-    private static AgentCard GetInvoiceAgentCard()
+    private static AgentCard GetCatalogAgentCard()
     {
-        var capabilities = new AgentCapabilities() {
+        var capabilities = new AgentCapabilities()
+        {
             Streaming = false,
             PushNotifications = false,
         };
 
-        var invoiceQuery = new AgentSkill() {
-            Id = "id_invoice_agent",
-            Name = "InvoiceQuery",
-            Description = "Handles requests relating to invoices.",
-            Tags = ["invoice", "semantic-kernel"],
+        var catalogSkill = new AgentSkill()
+        {
+            Id = "id_catalog_agent",
+            Name = "CatalogAgent",
+            Description = "Handles multiple types of queries including semantic search operations, data management, and MCP server tools.",
+            Tags = ["general", "search", "data", "semantic-kernel", "mcp-tools", "vector-database"],
             Examples =
             [
-                "List the latest invoices for Contoso.",
+                "Find a package named azure",
+                "Search for web development packages",
+                "Find deployment activities",
+                "Populate the database incrementally",
+                "Test the MCP server connection"
             ],
         };
 
-        return new() {
-            Name = "InvoiceAgent",
-            Description = "Handles requests relating to invoices.",
+        return new AgentCard()
+        {
+            Name = "CatalogAgent",
+            Description = "",
             Version = "1.0.0",
             DefaultInputModes = ["text"],
             DefaultOutputModes = ["text"],
             Capabilities = capabilities,
-            Skills = [invoiceQuery],
+            Skills = [catalogSkill],
         };
     }
+ 
 
-    private static AgentCard GetPolicyAgentCard()
+    private static AgentCard GetGeneralAgentCard()
     {
-        var capabilities = new AgentCapabilities() {
+        var capabilities = new AgentCapabilities()
+        {
             Streaming = false,
             PushNotifications = false,
         };
 
-        var invoiceQuery = new AgentSkill() {
-            Id = "id_policy_agent",
-            Name = "PolicyAgent",
-            Description = "Handles requests relating to policies and customer communications.",
-            Tags = ["policy", "semantic-kernel"],
+        var generalSkill = new AgentSkill()
+        {
+            Id = "id_general_agent",
+            Name = "GeneralAgent",
+            Description = "Handles multiple types of queries including semantic search operations, invoice queries, data management, and MCP server tools.",
+            Tags = ["general", "search", "invoice", "data", "semantic-kernel", "mcp-tools", "vector-database"],
             Examples =
             [
-                "What is the policy for short shipments?",
+                "Find a package named azure",
+                "Search for web development packages",
+                "Find deployment activities",
+                "Search the entire catalog for authentication",
+                "Do a keyword search for docker container",
+                "List the latest invoices for Contoso",
+                "Populate the database incrementally",
+                "Test the MCP server connection",
+                "Get a sample image from the MCP server"
             ],
         };
 
-        return new AgentCard() {
-            Name = "PolicyAgent",
-            Description = "Handles requests relating to policies and customer communications.",
+        return new AgentCard()
+        {
+            Name = "GeneralAgent",
+            Description = "General-purpose agent that handles search operations, invoice queries, and data management tasks.",
             Version = "1.0.0",
             DefaultInputModes = ["text"],
             DefaultOutputModes = ["text"],
             Capabilities = capabilities,
-            Skills = [invoiceQuery],
-        };
-    }
-
-    private static AgentCard GetLogisticsAgentCard()
-    {
-        var capabilities = new AgentCapabilities() {
-            Streaming = false,
-            PushNotifications = false,
-        };
-
-        var invoiceQuery = new AgentSkill() {
-            Id = "id_invoice_agent",
-            Name = "LogisticsQuery",
-            Description = "Handles requests relating to logistics.",
-            Tags = ["logistics", "semantic-kernel"],
-            Examples =
-            [
-                "What is the status for SHPMT-SAP-001",
-            ],
-        };
-
-        return new AgentCard() {
-            Name = "LogisticsAgent",
-            Description = "Handles requests relating to logistics.",
-            Version = "1.0.0",
-            DefaultInputModes = ["text"],
-            DefaultOutputModes = ["text"],
-            Capabilities = capabilities,
-            Skills = [invoiceQuery],
+            Skills = [generalSkill],
         };
     }
     #endregion
 }
 
-public record OpenAiOptions { 
-    public string ModelId { get; set; } = "azure/o4-mini";
+public record OpenAiOptions
+{
+    public string ModelId { get; set; } = "azure/gpt-4.1";
     public string Endpoint { get; set; } = "https://litellm.beta.clrslate.app";
     public string ApiKey { get; set; }
 }
