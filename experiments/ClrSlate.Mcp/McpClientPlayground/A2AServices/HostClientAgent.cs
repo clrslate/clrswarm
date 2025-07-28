@@ -54,6 +54,7 @@ internal sealed class HostClientAgent
             });
             builder.AddOpenAIChatCompletion(modelId, openAiClient);
             builder.Plugins.Add(agentPlugin);
+            //make sure to add proper address to WriteFilePlugin const TargetDirectory 
             builder.Plugins.AddFromObject(new WriteFilePlugin());
             var kernel = builder.Build();
             kernel.FunctionInvocationFilters.Add(new ConsoleOutputFunctionInvocationFilter());

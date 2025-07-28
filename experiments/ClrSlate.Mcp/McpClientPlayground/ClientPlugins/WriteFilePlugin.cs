@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 namespace McpClientPlayground.ClientPlugins;
 public class WriteFilePlugin
 {
-    private const string TargetDirectory = @"C:\Users\ankit\Chanagble\JobSpec\PublicAvailable\New folder\clrswarm\experiments\ClrSlate.Mcp\McpClientPlayground\GeneratedWorkflows";
-
+    private const string TargetDirectory = @"<absolute-path-to-store-workflows>";
+    // eg. targetDirectory =@"C:\Users\GeneratedWorkflows";
     [KernelFunction]
     [Description("Writes content to a fixed directory. The filename must be provided.")]
     public string WriteFile(
