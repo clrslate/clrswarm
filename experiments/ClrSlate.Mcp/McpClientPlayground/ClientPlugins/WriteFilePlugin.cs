@@ -23,7 +23,7 @@ using System.ComponentModel;
 namespace McpClientPlayground.ClientPlugins;
 public class WriteFilePlugin
 {
-    private const string TargetDirectory = @"<absolute-path-to-store-workflows>";
+    private const string TargetDirectory = @"absolute/path/to/store/workflows";
     // eg. targetDirectory =@"C:\Users\GeneratedWorkflows";
     [KernelFunction]
     [Description("Writes content to a fixed directory. The filename must be provided.")]
