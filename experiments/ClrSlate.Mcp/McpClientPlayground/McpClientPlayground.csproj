@@ -21,4 +21,8 @@
   <ItemGroup>
     <ProjectReference Include="..\src\aspire\ClrSlate.Mcp.ServiceDefaults\ClrSlate.Mcp.ServiceDefaults.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="GeneratedWorkflows\" />
+  </ItemGroup>
 </Project>

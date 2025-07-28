@@ -18,7 +18,7 @@
 
 public record OpenAiOptions
 {
-    public string ModelId { get; set; } = "azure/o4-mini";
+    public string ModelId { get; set; } = "azure/gpt-4.1";
     public string Endpoint { get; set; } = "https://litellm.beta.clrslate.app";
     public string ApiKey { get; set; }
 }

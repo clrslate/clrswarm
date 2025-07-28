@@ -31,7 +31,7 @@ internal class A2AClientPlaygroundService(OpenAiOptions aiOptions, ILogger<A2ACl
 
         // Create the Host agent
         var hostAgent = new HostClientAgent(logger);
-        await hostAgent.InitializeAgentAsync("azure/o4-mini", "https://litellm.beta.clrslate.app", aiOptions.ApiKey, agentUrls!.Split(";"));
+        await hostAgent.InitializeAgentAsync("azure/gpt-4.1", "https://litellm.beta.clrslate.app", aiOptions.ApiKey, agentUrls!.Split(";"));
         AgentThread thread = new ChatHistoryAgentThread();
         try {
             while (true) {

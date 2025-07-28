@@ -28,12 +28,14 @@ var password = builder.AddParameter("password", keycloakConfig.Admin.Password, s
 
 var keycloak = builder.AddKeycloak("keycloak", adminUsername: username, adminPassword: password)
     .WithDataVolume();
-var qdrant = builder.AddQdrant("qdrant");
+var qdrant = builder.AddQdrant("qdrant")
+    .WithDataVolume()
+    ;
 var ollama = builder.AddOllama("ollama", 11434)
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume(); // Persist models across container restarts
 
-var model = ollama.AddModel("nomic-embed-text");
+var model = ollama.AddModel("bge-m3");
 var keycloakMcpServer = builder.AddProject<Projects.ClrSlate_Mcp_KeyCloakServer>("keycloak-mcp")
         .WithEnvironment("keycloak__userName", username)
         .WithEnvironment("keycloak__password", password)
@@ -43,13 +45,6 @@ var keycloakMcpServer = builder.AddProject<Projects.ClrSlate_Mcp_KeyCloakServer>
         .WithReference(ollama).WaitFor(ollama);  // Reference the Ollama service for HTTP access
 var a2aTestAgent = builder.AddProject<Projects.ClrSlate_Agents_TestAgent>("a2a-test-agent")
     .WithReference(keycloakMcpServer).WaitFor(keycloakMcpServer);
-
-// Add specialized agents (ports configured in launchSettings.json)
-//var searchAgent = builder.AddProject<Projects.ClrSlate_Agents_SearchAgent>("search-agent")
-//    .WithReference(keycloakMcpServer).WaitFor(keycloakMcpServer);
-
-//var dataAgent = builder.AddProject<Projects.ClrSlate_Agents_DataAgent>("data-agent")
-//    .WithReference(keycloakMcpServer).WaitFor(keycloakMcpServer);
 
 // Update playground to connect to available agents
 var playground = builder.AddProject<Projects.McpClientPlayground>("playground")

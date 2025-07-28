@@ -1,0 +1,24 @@
+{
+  "name": "onboard-tech-new-hire",
+  "nodes": [
+    {"activityId": "azure.aad.addEmployee"},
+    {"activityId": "zoho.employee.addProfile"},
+    {"activityId": "microsoft365.createEmployeeAccount"},
+    {"activityId": "slack.createAccount"},
+    {"activityId": "sonarQube.resources"},
+    {"activityId": "azureDevOps.board.createWorkItem"},
+    {"activityId": "teams.invite"},
+    {"activityId": "jira.createAccount"},
+    {"activityId": "trello.addUser"}
+  ],
+  "edges": [
+    {"source": "azure.aad.addEmployee", "target": "zoho.employee.addProfile"},
+    {"source": "zoho.employee.addProfile", "target": "microsoft365.createEmployeeAccount"},
+    {"source": "microsoft365.createEmployeeAccount", "target": "slack.createAccount"},
+    {"source": "slack.createAccount", "target": "sonarQube.resources"},
+    {"source": "sonarQube.resources", "target": "azureDevOps.board.createWorkItem"},
+    {"source": "azureDevOps.board.createWorkItem", "target": "teams.invite"},
+    {"source": "teams.invite", "target": "jira.createAccount"},
+    {"source": "jira.createAccount", "target": "trello.addUser"}
+  ]
+}
