@@ -22,11 +22,11 @@ public class SearchConfiguration
 
     public string CatalogApiBaseUrl { get; set; } = "https://store.beta.clrslate.app";
     public string OllamaBaseUrl { get; set; } = "http://localhost:11434";
-    public string OllamaModel { get; set; } = "nomic-embed-text";
+    public string OllamaModel { get; set; } = "bge-m3";
     public string QdrantHost { get; set; } = "127.0.0.1";
     public int QdrantPort { get; set; } = 6334;
     public string QdrantCollection { get; set; } = "catalog-embeddings";
-    public int VectorDimensions { get; set; } = 2768; // nomic-embed-text dimensions
+    public int VectorDimensions { get; set; } = 1024; // bge-m3 dimensions
     public int BatchSize { get; set; } = 10;
     public TimeSpan HttpTimeout { get; set; } = TimeSpan.FromMinutes(5);
 }
