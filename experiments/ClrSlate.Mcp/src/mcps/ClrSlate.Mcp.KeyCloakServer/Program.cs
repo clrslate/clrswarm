@@ -53,7 +53,7 @@ var mcpBuilder = builder.Services.AddMcpServer(options =>
     options.ServerInfo = new Implementation
     {
         Name = "ClrSlateKeyCloakServer",
-        Title = "ClrSlate MCP KeyCloak Server with Semantic Search",
+        Title = "ClrSlate MCP KeyCloak Server ",
         Version = "1.1.0"
     };
 })
@@ -61,8 +61,6 @@ var mcpBuilder = builder.Services.AddMcpServer(options =>
     {
         options.Stateless = true;
     })
-    .WithTools<EchoTool>()
-    .WithTools<TinyImageTool>()
     .WithTools<SemanticSearchTool>()
     .WithTools<DataIngestionTool>()
     .WithTools<CatalogAPITool>()
