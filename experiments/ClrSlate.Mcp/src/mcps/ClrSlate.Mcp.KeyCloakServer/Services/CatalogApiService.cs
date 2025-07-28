@@ -73,8 +73,91 @@ public class CatalogApiService
             _logger.LogError(ex, "Error fetching packages from catalog API");
             throw;
         }
+    }    
+    public async Task<PackageEntity> GetPackageAsync(string packageId,CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation($"Fetching package with package Id {packageId}");
+
+            var response = await _httpClient.GetAsync($"https://store.beta.clrslate.app/api/catalog-packages?id={packageId}", cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse<PackageDto>>(json, _jsonOptions);
+
+            if (apiResponse?.Data == null)
+            {
+                _logger.LogWarning("No package returned from API");
+                return new PackageEntity();
+            }
+            var package = new PackageEntity
+            {
+                Id = apiResponse.Data.Id,
+                Name = apiResponse.Data.Name,
+                Description = apiResponse.Data.Description,
+                ImageSrc = apiResponse.Data.ImageSrc,
+                Tags = apiResponse.Data.Tags ?? new List<string>(),
+                Readme = apiResponse.Data.Readme,
+                Version = apiResponse.Data.Version
+            };
+
+            _logger.LogInformation($"Successfully fetched package with id : {packageId}" );
+            return package;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching packages from catalog API");
+            throw;
+        }
     }
 
+    public async Task<ActivityEntity> GetActivityAsync(string activityId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Fetching activities for package {PackageId}", activityId);
+
+            var response = await _httpClient.GetAsync($"https://store.beta.clrslate.app/api/catalog-actions?id={activityId}", cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse<ActivityDto>>(json, _jsonOptions);
+
+            if (apiResponse?.Data == null)
+            {
+                _logger.LogInformation("No activities found for package {PackageId}", activityId);
+                return new ActivityEntity();
+            }
+            var activity = new ActivityEntity()
+            {
+                Id = apiResponse.Data.Id,
+                Name = apiResponse.Data.Name,
+                Description = apiResponse.Data.Description,
+                ImageSrc = apiResponse.Data.ImageSrc,
+                Labels = apiResponse.Data.Labels,
+                Tags = apiResponse.Data.Tags ?? new List<string>(),
+                ParentId = apiResponse.Data.ParentId,
+                Type = apiResponse.Data.Type,
+                Documentation = apiResponse.Data.Documentation,
+                Parameters = apiResponse.Data.Parameters?.Select(p => new ActivityParameter
+                {
+                    Name = p.Name,
+                    Description = p.Description,
+                    Type = p.Type,
+                    Required = p.Required
+                }).ToList() ?? new List<ActivityParameter>()
+            };
+           
+            _logger.LogInformation("Successfully fetched activity {activityId}", activityId);
+            return activity;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching activities for activity {activityId}", activityId);
+            throw;
+        }
+    }    
     public async Task<List<ActivityEntity>> GetActivitiesForPackageAsync(string packageId, CancellationToken cancellationToken = default)
     {
         try
@@ -146,6 +229,7 @@ public class CatalogApiService
                 Name = dto.Name,
                 Description = dto.Description,
                 ImageSrc = dto.ImageSrc,
+                Labels = dto.Labels,
                 Tags = dto.Tags ?? new List<string>(),
                 ParentId = dto.ParentId,
                 Type = dto.Type,
@@ -194,13 +278,17 @@ public class ActivityDto
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string ImageSrc { get; set; } = string.Empty;
+    public ActivityLabelsDto? Labels { get; set; }
     public List<string>? Tags { get; set; }
     public string ParentId { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string? Documentation { get; set; }
     public List<ActivityParameterDto>? Parameters { get; set; }
 }
-
+public class ActivityLabelsDto
+{
+    public string? Category { get; set; }
+}
 public class ActivityParameterDto
 {
     public string Name { get; set; } = string.Empty;
@@ -227,6 +315,7 @@ public class ActivityEntity
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string ImageSrc { get; set; } = string.Empty;
+    public ActivityLabelsDto? Labels { get; set; }
     public List<string> Tags { get; set; } = new();
     public string ParentId { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
