@@ -73,10 +73,8 @@ public sealed class DataIngestionTool
             await vectorStorageService.EnsureCollectionExistsAsync();
             steps.Add("Vector collection ready");
 
-            // Step 2: Check embedding service
-            steps.Add("Checking embedding service...");
-            await embeddingService.EnsureModelAvailableAsync();
-            steps.Add("Embedding service ready");
+            // Step 2: Note embedding service ready (Aspire handles model availability)
+            steps.Add("Embedding service ready (Aspire-managed)");
 
             // Step 3: Fetch packages
             steps.Add("Fetching packages from catalog API...");
@@ -94,7 +92,7 @@ public sealed class DataIngestionTool
 
             foreach (var package in packages)
             {
-                var text = $"{package.Name} - {package.Description}";
+                var text = $"{package.Name} - {package.Description} - {package.Tags.ToString()} - {package} ";
                 if (!string.IsNullOrEmpty(package.Readme))
                 {
                     text += $" {package.Readme.Substring(0, Math.Min(package.Readme.Length, 500))}";
@@ -102,7 +100,7 @@ public sealed class DataIngestionTool
 
                 var record = new EmbeddingRecord
                 {
-                    Id = $"package_{package.Id}",
+                    Id = package.Id,
                     Text = text,
                     Metadata = new EmbeddingMetadata
                     {
@@ -126,7 +124,13 @@ public sealed class DataIngestionTool
 
             foreach (var activity in activities)
             {
-                var text = $"{activity.Name} - {activity.Description}";
+                string category = "";
+                if (activity.Labels != null)
+                {
+                    if (activity.Labels.Category != null)
+                        category = activity.Labels.Category;
+                }
+                var text = $"{activity.Name} - {activity.Description} - {activity.Tags} -{category}";
                 if (!string.IsNullOrEmpty(activity.Documentation))
                 {
                     text += $" {activity.Documentation.Substring(0, Math.Min(activity.Documentation.Length, 500))}";
@@ -134,7 +138,7 @@ public sealed class DataIngestionTool
 
                 var record = new EmbeddingRecord
                 {
-                    Id = $"activity_{activity.Id}",
+                    Id = $"{activity.Id}",
                     Text = text,
                     Metadata = new EmbeddingMetadata
                     {
