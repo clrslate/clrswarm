@@ -1,0 +1,268 @@
+﻿### Each A2A agent is available at a different host address
+@hostInvoice = http://localhost:5041
+@hostPolicy = http://localhost:5041
+@hostLogistics = http://localhost:5041
+
+### Query agent card for the invoice agent
+GET {{hostInvoice}}/.well-known/agent.json
+
+### Send a message to the invoice agent
+POST {{hostInvoice}}
+Content-Type: application/json
+
+{
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "12345",
+        "message": {
+            "role": "user",
+            "messageId": "msg_1",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Show me all invoices for Contoso?"
+                }
+            ]
+        }
+    }
+}
+
+### Query agent card for the policy agent
+GET {{hostPolicy}}/.well-known/agent.json
+
+### Send a message to the policy agent
+POST {{hostPolicy}}
+Content-Type: application/json
+
+{
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "12345",
+        "message": {
+            "role": "user",
+            "messageId": "msg_1",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "What is the policy for short shipments?"
+                }
+            ]
+        }
+    }
+}
+
+### Query agent card for the logistics agent
+GET {{hostLogistics}}/.well-known/agent.json
+
+### Send a message to the logistics agent
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "1",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "12345",
+        "message": {
+            "role": "user",
+            "messageId": "msg_1",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "What is the status for SHPMT-SAP-001?"
+                }
+            ]
+        }
+    }
+}
+
+### ============= MCP TOOLS PLUGIN TESTS =============
+
+### Test MCP server connection
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "2",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "connection_test",
+        "message": {
+            "role": "user",
+            "messageId": "msg_2",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Test the MCP server connection"
+                }
+            ]
+        }
+    }
+}
+
+### Search for packages using MCP tools plugin
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "3",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "package_search",
+        "message": {
+            "role": "user",
+            "messageId": "msg_3",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Find a package named azure"
+                }
+            ]
+        }
+    }
+}
+
+### Search for web development packages
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "4",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "web_packages",
+        "message": {
+            "role": "user",
+            "messageId": "msg_4",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Search for web development packages"
+                }
+            ]
+        }
+    }
+}
+
+### Search for deployment activities
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "5",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "deployment_activities",
+        "message": {
+            "role": "user",
+            "messageId": "msg_5",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Find deployment activities"
+                }
+            ]
+        }
+    }
+}
+
+### Initialize database incrementally
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "6",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "init_db",
+        "message": {
+            "role": "user",
+            "messageId": "msg_6",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Populate the database incrementally"
+                }
+            ]
+        }
+    }
+}
+
+### Comprehensive catalog search
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "7",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "catalog_search",
+        "message": {
+            "role": "user",
+            "messageId": "msg_7",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Search the entire catalog for authentication and security"
+                }
+            ]
+        }
+    }
+}
+
+### Keyword search test
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "8",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "keyword_search",
+        "message": {
+            "role": "user",
+            "messageId": "msg_8",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Do a keyword search for 'docker container'"
+                }
+            ]
+        }
+    }
+}
+
+### Get sample image from MCP server
+POST {{hostLogistics}}
+Content-Type: application/json
+
+{
+    "id": "9",
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "id": "sample_image",
+        "message": {
+            "role": "user",
+            "messageId": "msg_9",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "Get a sample image from the MCP server"
+                }
+            ]
+        }
+    }
+}
