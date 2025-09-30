@@ -12,28 +12,20 @@ namespace ClrSwarm.McpGateway.Management.Tests;
 [TestFixture]
 public class AdapterManagementServiceTests
 {
-    private readonly Mock<IAdapterDeploymentManager> _deploymentManagerMock;
-    private readonly Mock<IAdapterResourceStore> _storeMock;
-    private readonly Mock<ILogger<AdapterManagementService>> _loggerMock;
-    private readonly AdapterManagementService _service;
-    private readonly ClaimsPrincipal _accessContext;
+    private Mock<IAdapterDeploymentManager> _deploymentManagerMock = null!;
+    private Mock<IAdapterResourceStore> _storeMock = null!;
+    private Mock<ILogger<AdapterManagementService>> _loggerMock = null!;
+    private AdapterManagementService _service = null!;
+    private ClaimsPrincipal _accessContext = null!;
 
-    public AdapterManagementServiceTests()
+    [SetUp]
+    public void SetUp()
     {
         _deploymentManagerMock = new Mock<IAdapterDeploymentManager>();
         _storeMock = new Mock<IAdapterResourceStore>();
         _loggerMock = new Mock<ILogger<AdapterManagementService>>();
         _service = new AdapterManagementService(_deploymentManagerMock.Object, _storeMock.Object, _loggerMock.Object);
         _accessContext = new ClaimsPrincipal(new ClaimsIdentity([new(ClaimTypes.NameIdentifier, "user1")]));
-    }
-
-    [SetUp]
-    public void SetUp()
-    {
-        // Reset mocks so invocations from previous tests don't interfere with Times.Once verifications
-        _deploymentManagerMock.Reset();
-        _storeMock.Reset();
-        _loggerMock.Reset();
     }
 
     [Test]

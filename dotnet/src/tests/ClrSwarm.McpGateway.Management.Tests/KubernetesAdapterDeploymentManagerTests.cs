@@ -10,11 +10,12 @@ namespace ClrSwarm.McpGateway.Management.Tests;
 [TestFixture]
 public class KubernetesAdapterDeploymentManagerTests
 {
-    private readonly Mock<IKubeClientWrapper> _kubeClientMock;
-    private readonly Mock<ILogger<KubernetesAdapterDeploymentManager>> _loggerMock;
-    private readonly KubernetesAdapterDeploymentManager _manager;
+    private Mock<IKubeClientWrapper> _kubeClientMock = null!;
+    private Mock<ILogger<KubernetesAdapterDeploymentManager>> _loggerMock = null!;
+    private KubernetesAdapterDeploymentManager _manager = null!;
 
-    public KubernetesAdapterDeploymentManagerTests()
+    [SetUp]
+    public void SetUp()
     {
         _kubeClientMock = new Mock<IKubeClientWrapper>();
         _loggerMock = new Mock<ILogger<KubernetesAdapterDeploymentManager>>();

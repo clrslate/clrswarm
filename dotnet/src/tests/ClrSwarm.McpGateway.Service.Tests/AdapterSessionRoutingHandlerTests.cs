@@ -1,5 +1,4 @@
-﻿
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using ClrSwarm.McpGateway.Service.Routing;
@@ -8,13 +7,15 @@ using Moq;
 
 namespace ClrSwarm.McpGateway.Service.Tests;
 
+[TestFixture]
 public class AdapterSessionRoutingHandlerTests
 {
-    private readonly Mock<IServiceNodeInfoProvider> _serviceNodeInfoProviderMock;
-    private readonly Mock<IAdapterSessionStore> _sessionStoreMock;
-    private readonly AdapterSessionRoutingHandler _handler;
+    private Mock<IServiceNodeInfoProvider> _serviceNodeInfoProviderMock = null!;
+    private Mock<IAdapterSessionStore> _sessionStoreMock = null!;
+    private AdapterSessionRoutingHandler _handler = null!;
 
-    public AdapterSessionRoutingHandlerTests()
+    [SetUp]
+    public void SetUp()
     {
         _serviceNodeInfoProviderMock = new Mock<IServiceNodeInfoProvider>();
         _sessionStoreMock = new Mock<IAdapterSessionStore>();

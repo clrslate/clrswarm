@@ -10,11 +10,12 @@ namespace ClrSwarm.McpGateway.Management.Tests;
 [TestFixture]
 public class AdapterRichResultProviderTests
 {
-    private readonly Mock<IAdapterDeploymentManager> _deploymentManagerMock;
-    private readonly Mock<ILogger<AdapterManagementService>> _loggerMock;
-    private readonly AdapterRichResultProvider _provider;
+    private Mock<IAdapterDeploymentManager> _deploymentManagerMock = null!;
+    private Mock<ILogger<AdapterManagementService>> _loggerMock = null!;
+    private AdapterRichResultProvider _provider = null!;
 
-    public AdapterRichResultProviderTests()
+    [SetUp]
+    public void SetUp()
     {
         _deploymentManagerMock = new Mock<IAdapterDeploymentManager>();
         _loggerMock = new Mock<ILogger<AdapterManagementService>>();

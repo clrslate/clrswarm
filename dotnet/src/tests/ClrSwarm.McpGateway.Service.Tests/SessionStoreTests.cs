@@ -1,5 +1,4 @@
-﻿
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Distributed;
@@ -11,19 +10,25 @@ using NUnit.Framework;
 namespace ClrSwarm.McpGateway.Service.Tests;
 
 [TestFixture]
-public class SessionStoreTests
+public class SessionStoreTests : IDisposable
 {
-    private readonly Mock<IDistributedCache> _distributedCacheMock;
-    private readonly DistributedMemorySessionStore _sessionStore;
+    private Mock<IDistributedCache> _distributedCacheMock = null!;
+    private DistributedMemorySessionStore _sessionStore = null!;
 
-    public SessionStoreTests()
+    [SetUp]
+    public void SetUp()
     {
         _distributedCacheMock = new Mock<IDistributedCache>();
         _sessionStore = new DistributedMemorySessionStore(_distributedCacheMock.Object, NullLogger<DistributedMemorySessionStore>.Instance);
     }
 
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
+    [TearDown]
+    public void TearDown()
+    {
+        _sessionStore.Dispose();
+    }
+
+    public void Dispose()
     {
         _sessionStore.Dispose();
     }
