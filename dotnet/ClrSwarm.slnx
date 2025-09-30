@@ -7,6 +7,7 @@
     <Project Path="src/ClrSwarm.McpGateway.Service/ClrSwarm.McpGateway.Service.csproj" Id="28b33bae-55e8-4296-bcd9-994a7aa4b796" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="src/tests/ClrSwarm.McpGateway.Management.Tests/ClrSwarm.McpGateway.Management.Tests.csproj" Id="379101bf-b9e1-43d5-acbe-6861864ae4f3" />
     <Project Path="src/tests/ClrSwarm.McpGateway.Service.Tests/ClrSwarm.McpGateway.Service.Tests.csproj" Id="193b04d4-abbc-46f9-8ffa-2bae617ef142" />
   </Folder>
 </Solution>
