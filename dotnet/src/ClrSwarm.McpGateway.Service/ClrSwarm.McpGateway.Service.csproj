@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="KubernetesClient" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" />
+		<PackageReference Include="Microsoft.Identity.Web" />
+		<PackageReference Include="ModelContextProtocol.AspNetCore" />
+		<PackageReference Include="Scalar.AspNetCore" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ClrSwarm.McpGateway.Management\ClrSwarm.McpGateway.Management.csproj" />
+	</ItemGroup>
+
+</Project>

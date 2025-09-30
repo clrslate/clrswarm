@@ -1,0 +1,11 @@
+﻿
+using System.Security.Claims;
+
+namespace ClrSwarm.McpGateway.Management.Extensions;
+
+public static class IdentityExtensions
+{
+    public static string? GetUserId(this ClaimsPrincipal principal) =>
+        principal?.Claims?.FirstOrDefault(r => r.Type == ClaimTypes.NameIdentifier)?.Value ??
+        principal?.Claims?.FirstOrDefault(r => r.Type == "oid")?.Value;
+}
