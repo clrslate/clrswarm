@@ -1,4 +1,3 @@
-
 using Azure.Identity;
 using ClrSwarm.McpGateway.Management.Deployment;
 using ClrSwarm.McpGateway.Management.Service;
@@ -7,13 +6,13 @@ using ClrSwarm.McpGateway.Service.Routing;
 using ClrSwarm.McpGateway.Service.Session;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Identity.Web;
 using ClrSwarm.McpGateway.Management.Deployment;
 using ModelContextProtocol.AspNetCore.Authentication;
 using Scalar.AspNetCore;
 using System.Security.Claims;
+using ClrSwarm.McpGateway.Management.Extensions; // persistence extension
+using ClrSwarm.McpGateway.Service.Extensions; // cache extension
 
 var builder = WebApplication.CreateBuilder(args);
 var credential = new DefaultAzureCredential();
@@ -26,12 +25,8 @@ builder.Services.AddSingleton<IAdapterSessionStore, DistributedMemorySessionStor
 builder.Services.AddSingleton<IServiceNodeInfoProvider, AdapterKubernetesNodeInfoProvider>();
 builder.Services.AddSingleton<ISessionRoutingHandler, AdapterSessionRoutingHandler>();
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddSingleton<IAdapterResourceStore, InMemoryAdapterResourceStore>();
-    builder.Services.AddDistributedMemoryCache();
-}
-else
+// Auth only when not development
+if (!builder.Environment.IsDevelopment())
 {
     var azureAdConfig = builder.Configuration.GetSection("AzureAd");
     builder.Services.AddAuthentication(options =>
@@ -49,27 +44,11 @@ else
         };
     })
     .AddMicrosoftIdentityWebApi(azureAdConfig);
-
-    builder.Services.AddSingleton<IAdapterResourceStore>(c =>
-    {
-        var config = builder.Configuration.GetSection("CosmosSettings");
-        var connectionString = config["ConnectionString"];
-        var client = string.IsNullOrEmpty(connectionString) ? new CosmosClient(config["AccountEndpoint"], credential) : new CosmosClient(connectionString);
-        return new CosmosAdapterResourceStore(client, config["DatabaseName"]!, "AdapterContainer", c.GetRequiredService<ILogger<CosmosAdapterResourceStore>>());
-    });
-    builder.Services.AddCosmosCache(options =>
-    {
-        var config = builder.Configuration.GetSection("CosmosSettings");
-        var endpoint = config["AccountEndpoint"];
-        var connectionString = config["ConnectionString"];
-
-        options.ContainerName = "CacheContainer";
-        options.DatabaseName = config["DatabaseName"]!;
-        options.CreateIfNotExists = true;
-
-        options.ClientBuilder = string.IsNullOrEmpty(connectionString) ? new CosmosClientBuilder(endpoint, credential) : new CosmosClientBuilder(connectionString);
-    });
 }
+
+// Persistence & Cache
+builder.Services.AddAdapterResourcePersistence(builder.Configuration, credential);
+builder.Services.AddDistributedCache(builder.Configuration, credential);
 
 builder.Services.AddSingleton<IKubeClientWrapper>(c =>
 {
@@ -91,15 +70,12 @@ builder.Services.AddHttpClient();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    // Only loopback proxies are allowed by default. Clear any networks that have been added.
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
 var app = builder.Build();
 
-app.UseForwardedHeaders();
-app.UseHttpsRedirection();
 if (app.Environment.IsDevelopment())
 {
     app.Use(async (context, next) =>
@@ -111,13 +87,15 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseForwardedHeaders();
+app.UseHttpsRedirection();
+
 app.MapOpenApi();
 app.MapScalarApiReference(options => {
     options.DocumentDownloadType = DocumentDownloadType.Both;
     options.DynamicBaseServerUrl = true;
 });
 
-// Configure the HTTP request pipeline.
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

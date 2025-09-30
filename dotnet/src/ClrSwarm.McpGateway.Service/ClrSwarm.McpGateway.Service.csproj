@@ -9,6 +9,8 @@
 	<ItemGroup>
 		<PackageReference Include="KubernetesClient" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Microsoft.Azure.Cosmos" />
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" />
 		<PackageReference Include="Microsoft.Identity.Web" />
 		<PackageReference Include="ModelContextProtocol.AspNetCore" />

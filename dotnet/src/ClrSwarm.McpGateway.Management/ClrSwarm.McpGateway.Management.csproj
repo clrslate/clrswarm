@@ -11,6 +11,11 @@
 		<PackageReference Include="Microsoft.Azure.Cosmos" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="MongoDB.Driver" />
+		<PackageReference Include="Azure.Core" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" />
 	</ItemGroup>
 
 </Project>

@@ -9,14 +9,20 @@
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.53.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Cosmos" Version="1.8.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="3.14.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="MongoDB.Driver" Version="3.5.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="MSTest" Version="3.10.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.3.0-preview.2" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.8.8" />
+    <PackageVersion Include="Azure.Core" Version="1.44.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
   </ItemGroup>
   <ItemGroup Label="UnitTests">
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
