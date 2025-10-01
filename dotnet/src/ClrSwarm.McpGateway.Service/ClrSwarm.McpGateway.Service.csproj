@@ -7,6 +7,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Aspire.MongoDB.Driver.v3" />
 		<PackageReference Include="KubernetesClient" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
 		<PackageReference Include="Microsoft.Azure.Cosmos" />
@@ -19,6 +20,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\ClrSwarm.McpGateway.Management\ClrSwarm.McpGateway.Management.csproj" />
+	  <ProjectReference Include="..\ClrSwarm.McpGateway.ServiceDefaults\ClrSwarm.McpGateway.ServiceDefaults.csproj" />
 	</ItemGroup>
 
 </Project>

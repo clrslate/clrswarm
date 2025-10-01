@@ -1,10 +1,14 @@
 <Solution>
+  <Folder Name="/host/">
+    <Project Path="src/host/ClrSwarm.McpGateway.AppHost/ClrSwarm.McpGateway.AppHost.csproj" Id="a67aa1c7-bff6-4397-a3c1-4d1830db43b1" />
+  </Folder>
   <Folder Name="/solution/">
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ClrSwarm.McpGateway.Management/ClrSwarm.McpGateway.Management.csproj" Id="5a07ce2c-7f66-4584-b536-35b3f9b4d2d6" />
     <Project Path="src/ClrSwarm.McpGateway.Service/ClrSwarm.McpGateway.Service.csproj" Id="28b33bae-55e8-4296-bcd9-994a7aa4b796" />
+    <Project Path="src/ClrSwarm.McpGateway.ServiceDefaults/ClrSwarm.McpGateway.ServiceDefaults.csproj" Id="84881086-c2a5-4094-8580-f5cdebbd3e30" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="src/tests/ClrSwarm.McpGateway.Management.Tests/ClrSwarm.McpGateway.Management.Tests.csproj" Id="379101bf-b9e1-43d5-acbe-6861864ae4f3" />

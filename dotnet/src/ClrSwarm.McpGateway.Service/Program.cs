@@ -1,13 +1,11 @@
 using Azure.Identity;
 using ClrSwarm.McpGateway.Management.Deployment;
 using ClrSwarm.McpGateway.Management.Service;
-using ClrSwarm.McpGateway.Management.Store;
 using ClrSwarm.McpGateway.Service.Routing;
 using ClrSwarm.McpGateway.Service.Session;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Identity.Web;
-using ClrSwarm.McpGateway.Management.Deployment;
 using ModelContextProtocol.AspNetCore.Authentication;
 using Scalar.AspNetCore;
 using System.Security.Claims;
@@ -16,7 +14,7 @@ using ClrSwarm.McpGateway.Service.Extensions; // cache extension
 
 var builder = WebApplication.CreateBuilder(args);
 var credential = new DefaultAzureCredential();
-
+builder.AddServiceDefaults();
 builder.Services.AddLogging();
 builder.Services.AddOpenApi();
 
@@ -95,7 +93,7 @@ app.MapScalarApiReference(options => {
     options.DocumentDownloadType = DocumentDownloadType.Both;
     options.DynamicBaseServerUrl = true;
 });
-
+app.MapDefaultEndpoints();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
