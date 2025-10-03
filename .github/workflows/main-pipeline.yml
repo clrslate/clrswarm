@@ -87,7 +87,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: dotnet/ClrSwarm.McpGateway.Service/Dockerfile
+          # NOTE: Added missing 'src/' segment. Previous path caused: lstat dotnet/ClrSwarm.McpGateway.Service: no such file or directory
+          file: dotnet/src/ClrSwarm.McpGateway.Service/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
