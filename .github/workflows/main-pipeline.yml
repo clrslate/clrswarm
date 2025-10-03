@@ -1,0 +1,93 @@
+name: ClrSwarm CI
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  SOLUTION_FILE: dotnet/ClrSwarm.slnx
+  ACR_REPOSITORY: clrswarm/mcpgateway-service
+
+jobs:
+  build-and-verify:
+    name: Build & Verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ${{ env.SOLUTION_FILE }} --configuration Release --no-build --verbosity normal
+
+  build-and-push-image:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    needs: build-and-verify
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    env:
+      ACR_LOGIN_SERVER: ${{ fromJson(vars.CLRSLATEPUBLIC_ACR).loginServer }}
+      ACR_NAME: ${{ fromJson(vars.CLRSLATEPUBLIC_ACR).name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate registry configuration
+        run: |
+          if [ -z "${ACR_LOGIN_SERVER}" ] || [ -z "${ACR_NAME}" ] || [ -z "${ACR_REPOSITORY}" ]; then
+            echo "ACR_LOGIN_SERVER, ACR_NAME, and ACR_REPOSITORY must be provided via repository variables or workflow configuration." >&2
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.CLRSLATEPUBLIC_ACR_PUSH_SP }}
+
+      - name: Log in to Azure Container Registry
+        run: az acr login --name "${ACR_NAME}"
+
+      - name: Extract container metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ACR_LOGIN_SERVER }}/${{ env.ACR_REPOSITORY }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push container image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dotnet/ClrSwarm.McpGateway.Service/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
